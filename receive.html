@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Receive QR - Cultra</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 8px;
+        }
+
+        .lead {
+            color: #71809f;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 24px;
+        }
+
+        label {
+            display: block;
+            color: #8491ad;
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        select, input {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 22px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        input::placeholder {
+            color: #596987;
+        }
+
+        /* Mode toggle */
+
+        .toggle {
+            display: flex;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 18px;
+            padding: 4px;
+            margin-bottom: 22px;
+        }
+
+        .toggle button {
+            flex: 1;
+            border: none;
+            background: none;
+            color: #71809f;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 12px 8px;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        .toggle button.active {
+            background-color: #f79432;
+            color: #0d111d;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row > div {
+            flex: 1;
+        }
+
+        .row select {
+            margin-bottom: 0;
+        }
+
+        /* QR card */
+
+        .qr-card {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 26px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 22px;
+        }
+
+        #qrcode {
+            background-color: white;
+            padding: 14px;
+            border-radius: 16px;
+        }
+
+        .qr-caption {
+            color: #71809f;
+            font-size: 14px;
+            margin: 18px 0 0;
+            text-align: center;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: #71809f;
+            line-height: 1.5;
+        }
+
+        .empty a {
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+
+        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+
+        <h1>Receive QR</h1>
+        <p class="lead">Someone scans this and pays you directly — no approval needed on your side.</p>
+
+        <div id="setup"></div>
+
+    </main>
+
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const setup = document.getElementById("setup");
+        const APP_BALANCE = "APP_BALANCE"; // must match main.py
+
+        let numbers = [];
+        let selectedCard = APP_BALANCE;
+
+        function accountLabel(id) {
+            return id === APP_BALANCE ? "Cultra balance" : "•••• " + id.slice(-4);
+        }
+        let fixedMode = false; // false = any amount, true = fixed amount
+
+        function empty(html) {
+            setup.innerHTML = '<p class="empty">' + html + "</p>";
+        }
+
+        function renderQr() {
+            const currency = document.getElementById("currency-select").value;
+            let amountPart = "any";
+
+            if (fixedMode) {
+                const amount = parseFloat(document.getElementById("amount-input").value);
+                if (!amount || amount <= 0) {
+                    document.getElementById("qrcode").innerHTML = "";
+                    document.getElementById("qr-caption").innerText = "Enter an amount to generate the code.";
+                    return;
+                }
+                amountPart = amount.toFixed(2);
+            }
+
+            const box = document.getElementById("qrcode");
+            box.innerHTML = "";
+            new QRCode(box, {
+                text: "PAY:" + user_id + ":" + selectedCard + ":" + amountPart + ":" + currency,
+                width: 220,
+                height: 220,
+                colorDark: "#0d111d",
+                colorLight: "#ffffff"
+            });
+
+            document.getElementById("qr-caption").innerText =
+                (fixedMode ? "They'll pay " + (currency === "AZN" ? "₼" : currency + " ") + amountPart : "They choose the amount") +
+                " into " + accountLabel(selectedCard);
+        }
+
+        function setMode(toFixed) {
+            fixedMode = toFixed;
+            document.getElementById("mode-any").className = fixedMode ? "" : "active";
+            document.getElementById("mode-fixed").className = fixedMode ? "active" : "";
+            document.getElementById("amount-row").style.display = fixedMode ? "block" : "none";
+            renderQr();
+        }
+
+        async function init() {
+            let data;
+            try {
+                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                data = await response.json();
+            } catch (error) {
+                empty("Can't reach the server. Check that the backend is running.");
+                return;
+            }
+
+            if (data.status !== "success") {
+                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                return;
+            }
+
+            numbers = Object.keys(data.accounts);
+
+            // The Cultra balance is always available, so no cards is fine.
+            selectedCard = APP_BALANCE;
+
+            setup.innerHTML =
+                '<div class="toggle">' +
+                '<button id="mode-any" class="active">Any amount</button>' +
+                '<button id="mode-fixed">Fixed amount</button>' +
+                "</div>" +
+
+                '<div id="amount-row" style="display:none;">' +
+                '<label for="amount-input">Amount</label>' +
+                '<input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00" />' +
+                "</div>" +
+
+                '<div class="row">' +
+                '<div>' +
+                '<label for="card-select">Receive into</label>' +
+                '<select id="card-select"></select>' +
+                "</div>" +
+                '<div>' +
+                '<label for="currency-select">Currency</label>' +
+                '<select id="currency-select">' +
+                '<option value="AZN">AZN</option>' +
+                '<option value="USD">USD</option>' +
+                "</select>" +
+                "</div>" +
+                "</div>" +
+
+                '<div class="qr-card">' +
+                '<div id="qrcode"></div>' +
+                '<p class="qr-caption" id="qr-caption"></p>' +
+                "</div>";
+
+            const select = document.getElementById("card-select");
+
+            const appOption = document.createElement("option");
+            appOption.value = APP_BALANCE;
+            appOption.innerText = "Cultra balance";
+            select.appendChild(appOption);
+
+            numbers.forEach(function (number) {
+                const option = document.createElement("option");
+                option.value = number;
+                option.innerText = "•••• " + number.slice(-4);
+                select.appendChild(option);
+            });
+
+            select.addEventListener("change", function () {
+                selectedCard = select.value;
+                renderQr();
+            });
+
+            document.getElementById("currency-select").addEventListener("change", renderQr);
+            document.getElementById("amount-input").addEventListener("input", renderQr);
+            document.getElementById("mode-any").addEventListener("click", function () { setMode(false); });
+            document.getElementById("mode-fixed").addEventListener("click", function () { setMode(true); });
+
+            renderQr();
+        }
+
+        init();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>

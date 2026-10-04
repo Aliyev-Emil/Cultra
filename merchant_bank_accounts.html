@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Merchant bank accounts - Cultra</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0d1016;
+            --card: #181b22;
+            --secondary: #20242c;
+            --border: #353a43;
+            --cultra-gold: #d9a441;
+            --cultra-gold-bright: #f0c35a;
+            --text: #f5f5f5;
+            --text-2: #9299a8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header */
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: var(--text-2);
+            margin-top: 5px;
+        }
+
+        .notification {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Balance */
+
+        .balance-box {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--cultra-gold, #d9a441);
+            border-radius: 28px;
+            padding: 27px;
+            margin-top: 25px;
+        }
+
+        .balance-title {
+            color: var(--text-2);
+            margin: 0;
+        }
+
+        .balance {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .balance-decimal {
+            color: var(--text-2);
+            font-size: 23px;
+        }
+
+        .balance-subtitle {
+            color: var(--text-2);
+            margin: 0;
+        }
+
+        .bank-total-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-top: 12px;
+        }
+
+        .bank-total-label {
+            color: var(--text-2);
+            font-size: 14px;
+        }
+
+        .bank-total-amount {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* Main buttons */
+
+        .main-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .main-button {
+            flex: 1;
+            height: 82px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .button-icon {
+            display: block;
+            color: var(--cultra-gold, #d9a441);
+            margin-bottom: 8px;
+        }
+
+        /* All icons are inline SVG in currentColor, so no system font can turn them into blue emoji */
+        .icon {
+            width: 26px;
+            height: 26px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .button-icon .icon {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .notification.switch {
+            color: var(--cultra-gold, #d9a441);
+        }
+
+        .notification.switch .icon,
+        .bank-logo .icon {
+            width: 22px;
+            height: 22px;
+        }
+
+        .bank-logo {
+            color: var(--cultra-gold, #d9a441);
+        }
+
+        /* Section titles */
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .manage {
+            color: var(--cultra-gold, #d9a441);
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: var(--text-2);
+            font-size: 14px;
+            padding: 10px 5px 4px;
+        }
+
+        /* Bank cards */
+
+        .bank {
+            display: flex;
+            align-items: center;
+            padding: 12px 5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bank-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 13px;
+            background-color: var(--secondary);
+            font-size: 18px;
+        }
+
+        .bank-info {
+            flex: 1;
+        }
+
+        .bank-name {
+            font-weight: bold;
+        }
+
+        .bank-status {
+            color: var(--text-2);
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .bank-balance {
+            font-weight: bold;
+        }
+
+        /* Başqa bank qoş */
+
+        .connect {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            padding: 14px 5px;
+            border-bottom: 1px solid var(--border);
+            color: var(--cultra-gold, #d9a441);
+            font-weight: bold;
+            background: none;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .plus {
+            width: 44px;
+            height: 44px;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--text-2);
+            margin-right: 13px;
+        }
+
+        /* Əməliyyatlar */
+
+        .purchase {
+            display: flex;
+            align-items: center;
+            padding: 14px 5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .purchase-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 13px;
+            font-size: 20px;
+        }
+
+        .purchase-icon.received {
+            color: #3fc08d;
+        }
+
+        .purchase-icon.sent {
+            color: #ff7a6b;
+        }
+
+        .purchase-info {
+            flex: 1;
+        }
+
+        .purchase-name {
+            font-weight: bold;
+        }
+
+        .purchase-date {
+            color: var(--text-2);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .purchase-amount {
+            font-weight: bold;
+        }
+
+        .purchase-amount.received {
+            color: #3fc08d;
+        }
+
+        /* Bottom navigation */
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background-color: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            color: var(--text-2);
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .nav-active {
+            color: var(--cultra-gold, #d9a441);
+        }
+
+        /* Merchant entry */
+
+        .merchant-entry {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 10px;
+            padding: 14px 18px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--cultra-gold, #d9a441);
+            border-radius: 18px;
+            color: var(--text);
+            font-family: inherit;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .merchant-icon {
+            font-size: 24px;
+        }
+
+        .merchant-text {
+            flex: 1;
+        }
+
+        .merchant-title {
+            display: block;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .merchant-sub {
+            display: block;
+            color: var(--text-2);
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .merchant-arrow {
+            color: var(--cultra-gold, #d9a441);
+            font-size: 22px;
+        }
+    
+        /* merchant page extras */
+
+        .biz-cat {
+            color: var(--text-2);
+            font-size: 14px;
+            margin: 6px 0 0;
+        }
+
+        .switch {
+            color: var(--text);
+        }
+
+        .sheet-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.55);
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .sheet-bg.on {
+            display: flex;
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 26px 26px 0 0;
+            padding: 26px 24px 30px;
+        }
+
+        .sheet h2 {
+            margin: 0 0 4px;
+            font-size: 22px;
+        }
+
+        .sheet label {
+            display: block;
+            color: var(--text-2);
+            font-size: 14px;
+            margin: 16px 0 8px 4px;
+        }
+
+        .sheet select, .sheet input {
+            width: 100%;
+            height: 56px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            color: var(--text);
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+        }
+
+        .sheet select:focus, .sheet input:focus {
+            outline: none;
+            border-color: var(--cultra-gold, #d9a441);
+        }
+
+        .sheet-sub {
+            color: var(--text-2);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .link {
+            background: none;
+            border: none;
+            color: var(--cultra-gold, #d9a441);
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 4px 0;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 18px;
+            background-color: var(--cultra-gold, #d9a441);
+            color: var(--bg);
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 18px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .btn-secondary {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            margin-top: 12px;
+        }
+
+        .message {
+            color: #ff7a6b;
+            font-size: 14px;
+            margin: 12px 4px 0;
+            min-height: 18px;
+        }
+
+        .message.ok {
+            color: #3fc08d;
+        }
+
+        /* theme: bright accent for interactive highlights, softer placeholder */
+
+        input::placeholder {
+            opacity: 0.6;
+        }
+
+        input:focus, select:focus, .sheet input:focus, .sheet select:focus {
+            border-color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .cat:hover, .main-button:hover {
+            border-color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .cat.selected {
+            border-color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .manage, .link, .connect, .empty a {
+            color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .btn:not(.btn-secondary):hover:not(:disabled) {
+            background-color: var(--cultra-gold-bright, #f0c35a);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a class="notification" href="merchant_main_page.html" aria-label="Back to merchant page" style="text-decoration:none;color:var(--text);">←</a>
+    </div>
+
+    <h1 style="font-size:28px;margin:26px 0 8px;">Merchant bank accounts</h1>
+
+    <div id="banks-list">
+        <p class="empty">Loading...</p>
+    </div>
+
+    <button class="connect" onclick="window.location.href='add_bank.html?type=merchant'">
+        <div class="plus">+</div>
+        Add merchant bank account
+    </button>
+
+    <script>
+
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const API = "http://127.0.0.1:8000";
+        const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function el(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) node.textContent = text;   // textContent: names are user-typed, never HTML
+            return node;
+        }
+
+        // Returns the merchant profile, or sends the user where they need to go instead
+        async function requireMerchant() {
+            let data;
+            try {
+                const response = await fetch(API + "/merchant/" + user_id);
+                data = await response.json();
+            } catch (error) {
+                return { error: "Can't reach the server. Check that the backend is running." };
+            }
+
+            if (data.status !== "success") {
+                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+            }
+
+            if (!data.registered) {
+                window.location.href = "merchant_register.html";
+                return { error: "Redirecting..." };
+            }
+
+            return { merchant: data.merchant };
+        }
+
+        const CARD_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/></svg>';
+
+        async function load() {
+            const list = document.getElementById("banks-list");
+            let data;
+            try {
+                const response = await fetch(API + "/bankcards/" + user_id + "?type=merchant");
+                data = await response.json();
+            } catch (error) {
+                list.innerHTML = '<p class="empty">Can\'t reach the server. Check that the backend is running.</p>';
+                return;
+            }
+
+            if (data.status !== "success") {
+                if (data.reason === "You're not a merchant") { window.location.href = "merchant_register.html"; return; }
+                list.innerHTML = '<p class="empty">Your session has expired. <a href="login.html">Log in again</a></p>';
+                return;
+            }
+
+            const numbers = Object.keys(data.accounts);
+            list.innerHTML = "";
+
+            if (numbers.length === 0) {
+                list.appendChild(el("p", "empty", "No merchant bank account yet. Add one to withdraw your balance."));
+                return;
+            }
+
+            numbers.forEach(function (number) {
+                const row = el("div", "bank");
+                const info = el("div", "bank-info");
+                info.append(el("div", "bank-name", "•••• " + number.slice(-4)), el("div", "bank-status", "Withdrawals go here"));
+                const logo = el("div", "bank-logo");
+                logo.innerHTML = CARD_ICON;   // fixed markup, not user text
+                row.append(logo, info, el("div", "bank-balance", "₼" + money(data.accounts[number].balance)));
+                list.appendChild(row);
+            });
+        }
+
+        load();
+    </script>
+</body>
+</html>

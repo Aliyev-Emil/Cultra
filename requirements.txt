@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+
+# Optional, only for the dev helper scripts (qr_test.py, scan_qr.py):
+# qrcode[pil]
+# opencv-python
+# pyzbar

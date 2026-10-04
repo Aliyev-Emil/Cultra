@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Ana səhifə</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header */
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #71809f;
+            margin-top: 5px;
+        }
+
+        .notification {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Balance */
+
+        .balance-box {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 28px;
+            padding: 27px;
+            margin-top: 25px;
+        }
+
+        .balance-title {
+            color: #8491ad;
+            margin: 0;
+        }
+
+        .balance {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .balance-decimal {
+            color: #8795b5;
+            font-size: 23px;
+        }
+
+        .balance-subtitle {
+            color: #596987;
+            margin: 0;
+        }
+
+        .bank-total-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-top: 12px;
+        }
+
+        .bank-total-label {
+            color: #8491ad;
+            font-size: 14px;
+        }
+
+        .bank-total-amount {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* Main buttons */
+
+        .main-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .main-button {
+            flex: 1;
+            height: 82px;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 18px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .button-icon {
+            display: block;
+            color: #f79432;
+            font-size: 25px;
+            margin-bottom: 8px;
+        }
+
+        /* Section titles */
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .manage {
+            color: #f79432;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: #71809f;
+            font-size: 14px;
+            padding: 10px 5px 4px;
+        }
+
+        /* Bank cards */
+
+        .bank {
+            display: flex;
+            align-items: center;
+            padding: 12px 5px;
+            border-bottom: 1px solid #222a3a;
+        }
+
+        .bank-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 13px;
+            background-color: #20283a;
+            font-size: 18px;
+        }
+
+        .bank-info {
+            flex: 1;
+        }
+
+        .bank-name {
+            font-weight: bold;
+        }
+
+        .bank-status {
+            color: #61708d;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .bank-balance {
+            font-weight: bold;
+        }
+
+        /* Başqa bank qoş */
+
+        .connect {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            padding: 14px 5px;
+            border-bottom: 1px solid #222a3a;
+            color: #f79432;
+            font-weight: bold;
+            background: none;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .plus {
+            width: 44px;
+            height: 44px;
+            border: 1px dashed #596780;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #71809d;
+            margin-right: 13px;
+        }
+
+        /* Əməliyyatlar */
+
+        .purchase {
+            display: flex;
+            align-items: center;
+            padding: 14px 5px;
+            border-bottom: 1px solid #222a3a;
+        }
+
+        .purchase-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: #20283a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 13px;
+            font-size: 20px;
+        }
+
+        .purchase-icon.received {
+            color: #3fc08d;
+        }
+
+        .purchase-icon.sent {
+            color: #ff7a6b;
+        }
+
+        .purchase-info {
+            flex: 1;
+        }
+
+        .purchase-name {
+            font-weight: bold;
+        }
+
+        .purchase-date {
+            color: #61708d;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .purchase-amount {
+            font-weight: bold;
+        }
+
+        .purchase-amount.received {
+            color: #3fc08d;
+        }
+
+        /* Bottom navigation */
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background-color: #171e30;
+            border-top: 1px solid #30394c;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            color: #687590;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .nav-active {
+            color: #f79432;
+        }
+
+        /* Merchant button in the header */
+
+        .header-merchant {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-merchant-label {
+            color: #8491ad;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <!-- Header -->
+
+    <div class="header">
+
+        <div>
+            <p class="greeting" id="greeting">Salam</p>
+        </div>
+
+        <div class="header-merchant">
+            <span class="header-merchant-label" onclick="openMerchant()">Merchant</span>
+            <button class="notification" onclick="openMerchant()" aria-label="Merchant" title="Merchant">
+                🏪
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- App Balance -->
+
+    <div class="balance-box">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <p class="balance-title">Cultra balansı</p>
+            <button class="manage" onclick="window.location.href='add_money.html'">+ Balans əlavə et</button>
+        </div>
+
+        <div class="balance" id="balance">
+            ₼0<span class="balance-decimal">.00</span>
+        </div>
+
+        <p class="balance-subtitle" id="balance-subtitle">
+            Yüklənir...
+        </p>
+
+    </div>
+
+    <!-- Bank total (separate from the app balance above) -->
+
+    <div class="bank-total-box">
+        <span class="bank-total-label">Banklardakı ümumi məbləğ</span>
+        <span class="bank-total-amount" id="bank-total">₼0.00</span>
+    </div>
+
+
+    <!-- Main Buttons -->
+
+    <div class="main-buttons">
+
+        <button class="main-button" onclick="window.location.href='scan.html'">
+            <span class="button-icon">⌗</span>
+            Skan et
+        </button>
+
+        <button class="main-button" onclick="window.location.href='payment_qr.html'">
+            <span class="button-icon">▦</span>
+            Ödəniş QR
+        </button>
+
+        <button class="main-button" onclick="window.location.href='receive.html'">
+            <span class="button-icon">↓</span>
+            Qəbul QR
+        </button>
+
+    </div>
+
+
+    <!-- Banklar -->
+
+    <div class="section-header">
+
+        <div class="section-title">
+            Bank Hesablarınız
+        </div>
+
+        <button class="manage" onclick="window.location.href='bank_cards.html'">
+            Hamısına bax
+        </button>
+
+    </div>
+
+    <div id="banks-list">
+        <p class="empty">Yüklənir...</p>
+    </div>
+
+
+    <!-- Add Bank -->
+
+    <button class="connect" onclick="window.location.href='add_bank.html'">
+
+        <div class="plus">
+            +
+        </div>
+
+        Bank Hesabı əlavə et
+
+    </button>
+
+
+    <!-- Əməliyyatlar -->
+
+    <div class="section-header" id="activity">
+
+        <div class="section-title">
+            Tarixçə
+        </div>
+
+        <div class="manage" style="cursor:default;">
+            Hamısına bax
+        </div>
+
+    </div>
+
+    <div id="activity-list">
+        <p class="empty">Yüklənir...</p>
+    </div>
+
+
+    <!-- Bottom Navigation -->
+
+    <div class="bottom-nav">
+
+        <div class="nav-item nav-active">
+            <span class="nav-icon">⌂</span>
+            Ana səhifə
+        </div>
+
+        <button class="nav-item" onclick="document.getElementById('activity').scrollIntoView({behavior:'smooth'})">
+            <span class="nav-icon">⌁</span>
+            Tarixçə
+        </button>
+
+        <button class="nav-item" onclick="window.location.href='scan.html'">
+            <span class="nav-icon">▦</span>
+            Ödə
+        </button>
+
+        <button class="nav-item" onclick="window.location.href='bank_cards.html'">
+            <span class="nav-icon">▱</span>
+            Banklar
+        </button>
+
+    </div>
+
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderBalance(total) {
+            const parts = money(total).split(".");
+            document.getElementById("balance").innerHTML =
+                "₼" + parts[0] + '<span class="balance-decimal">.' + parts[1] + "</span>";
+        }
+
+        function formatWhen(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " +
+                d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+
+        async function loadGreeting() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/users/" + user_id);
+                const data = await response.json();
+                if (data.username) {
+                    document.getElementById("greeting").innerText = "Salam, " + data.username;
+                }
+            } catch (error) {
+                // keep the default greeting
+            }
+        }
+
+        // Business names / usernames are typed by users: never put them into innerHTML raw
+        function esc(text) {
+            return String(text).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+
+        // First time: category + business name (merchant_register.html). After that: straight to the merchant page.
+        let merchantRegistered = null;
+
+        async function loadMerchantEntry() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/merchant/" + user_id);
+                const data = await response.json();
+                if (data.status !== "success") return;
+
+                merchantRegistered = data.registered;
+            } catch (error) {
+                // leave the default text
+            }
+        }
+
+        async function openMerchant() {
+            if (merchantRegistered === null) await loadMerchantEntry();
+            if (merchantRegistered === null) return; // server unreachable, stay here
+            window.location.href = merchantRegistered ? "merchant_main_page.html" : "merchant_register.html";
+        }
+
+        async function loadBanklarAndBalance() {
+            const list = document.getElementById("banks-list");
+
+            let data, balanceData;
+            try {
+                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                data = await response.json();
+                const balanceResponse = await fetch("http://127.0.0.1:8000/app-balance/" + user_id);
+                balanceData = await balanceResponse.json();
+            } catch (error) {
+                list.innerHTML = '<p class="empty">Can\'t reach the server. Check that the backend is running.</p>';
+                document.getElementById("balance-subtitle").innerText = "Əlçatan deyil";
+                return;
+            }
+
+            if (data.status !== "success" || balanceData.status !== "success") {
+                list.innerHTML = '<p class="empty">Sessiyanızın müddəti bitib. <a href="login.html" style="color:#f79432;font-weight:bold;">Yenidən daxil olun</a></p>';
+                document.getElementById("balance-subtitle").innerText = "Əlçatan deyil";
+                return;
+            }
+
+            const numbers = Object.keys(data.accounts);
+
+            // Primary number: app balance (spendable in-app, topped up one-way from a card)
+            renderBalance(balanceData.app_balance);
+            document.getElementById("balance-subtitle").innerText =
+                numbers.length === 0 ? "Bank hesabı əlavə edin, sonra balansınızı artırın" : "Tətbiqdə istifadə üçün əlçatandır";
+
+            // Secondary stat: total sitting across connected bank cards (separate from app balance)
+            document.getElementById("bank-total").innerText = "₼" + money(balanceData.bank_total);
+
+            if (numbers.length === 0) {
+                list.innerHTML = '<p class="empty">Hələ bank hesabı yoxdur.</p>';
+                return;
+            }
+
+            list.innerHTML = "";
+            numbers.forEach(function (number) {
+                const account = data.accounts[number];
+                const row = document.createElement("div");
+                row.className = "bank";
+                row.innerHTML =
+                    '<div class="bank-logo">💳</div>' +
+                    '<div class="bank-info">' +
+                    '<div class="bank-name">•••• ' + number.slice(-4) + "</div>" +
+                    '<div class="bank-status">Qoşulub</div>' +
+                    "</div>" +
+                    '<div class="bank-balance">₼' + money(account.balance) + "</div>";
+                list.appendChild(row);
+            });
+        }
+
+        async function loadƏməliyyatlar() {
+            const list = document.getElementById("activity-list");
+
+            let data;
+            try {
+                const response = await fetch("http://127.0.0.1:8000/transactions/" + user_id);
+                data = await response.json();
+            } catch (error) {
+                list.innerHTML = '<p class="empty">Can\'t reach the server. Check that the backend is running.</p>';
+                return;
+            }
+
+            if (data.status !== "success" || data.transactions.length === 0) {
+                list.innerHTML = '<p class="empty">Hələ heç bir əməliyyat yoxdur.</p>';
+                return;
+            }
+
+            list.innerHTML = "";
+            data.transactions.forEach(function (tx) {
+                const sent = tx.direction === "sent";
+                const topup = tx.direction === "topup";
+                const row = document.createElement("div");
+                row.className = "purchase";
+
+                let name, amountText, iconClass, amountClass, icon;
+                if (topup) {
+                    name = "Tətbiq balansına əlavə edildi";
+                    amountText = "+₼" + money(tx.amount);
+                    iconClass = "received";
+                    amountClass = "received";
+                    icon = "↓";
+                } else {
+                    name = (sent ? "Göndərildi: " : "Qəbul edildi: ") + esc(tx.other_username);
+                    amountText = (sent ? "-" : "+") + "₼" + money(tx.amount);
+                    iconClass = tx.direction;
+                    amountClass = tx.direction;
+                    icon = sent ? "↑" : "↓";
+                }
+
+                row.innerHTML =
+                    '<div class="purchase-icon ' + iconClass + '">' + icon + "</div>" +
+                    '<div class="purchase-info">' +
+                    '<div class="purchase-name">' + name + "</div>" +
+                    '<div class="purchase-date">' + formatWhen(tx.at) + "</div>" +
+                    "</div>" +
+                    '<div class="purchase-amount ' + amountClass + '">' + amountText + "</div>";
+                list.appendChild(row);
+            });
+        }
+
+        loadGreeting();
+        loadMerchantEntry();
+        loadBanklarAndBalance();
+        loadƏməliyyatlar();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+</html>

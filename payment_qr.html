@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ödəniş Qr kodum - Cultra</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 8px;
+        }
+
+        .lead {
+            color: #71809f;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 24px;
+        }
+
+        label {
+            display: block;
+            color: #8491ad;
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        select {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 26px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        .qr-card {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 26px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #qrcode {
+            background-color: white;
+            padding: 14px;
+            border-radius: 16px;
+        }
+
+        .qr-caption {
+            color: #71809f;
+            font-size: 14px;
+            margin: 18px 0 0;
+            text-align: center;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: #71809f;
+            line-height: 1.5;
+        }
+
+        .empty a {
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+
+        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+
+        <h1>Ödəniş Qr Kodu</h1>
+        <p class="lead">Bunu skan edən hər kəs kartınızdan və ya Cultra balansınızdan müəyyən məbləğ tələb edə bilər. Ödəniş həyata keçirilməzdən əvvəl sizdən təsdiq istəniləcək.</p>
+
+        <div id="setup"></div>
+
+    </main>
+
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const APP_BALANCE = "APP_BALANCE"; // must match main.py
+
+        const setup = document.getElementById("setup");
+        let qrInstance = null;
+
+        function empty(html) {
+            setup.innerHTML = '<p class="empty">' + html + "</p>";
+        }
+
+        function accountLabel(id) {
+            return id === APP_BALANCE ? "Cultra balansı" : "•••• " + id.slice(-4);
+        }
+
+        function renderQr(account) {
+            const box = document.getElementById("qrcode");
+            box.innerHTML = "";
+            qrInstance = new QRCode(box, {
+                text: "PAY_QR:" + user_id + ":" + account,
+                width: 220,
+                height: 220,
+                colorDark: "#0d111d",
+                colorLight: "#ffffff"
+            });
+            document.getElementById("caption").innerText = accountLabel(account);
+        }
+
+        async function init() {
+            let data;
+            try {
+                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                data = await response.json();
+            } catch (error) {
+                empty("Can't reach the server. Check that the backend is running.");
+                return;
+            }
+
+            if (data.status !== "success") {
+                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                return;
+            }
+
+            const numbers = Object.keys(data.accounts);
+
+            // Cultra balance first (always available), then the bank cards
+            const select = document.createElement("select");
+            select.id = "card-select";
+
+            const appOption = document.createElement("option");
+            appOption.value = APP_BALANCE;
+            appOption.innerText = "Cultra balansı";
+            select.appendChild(appOption);
+
+            numbers.forEach(function (number) {
+                const option = document.createElement("option");
+                option.value = number;
+                option.innerText = "•••• " + number.slice(-4);
+                select.appendChild(option);
+            });
+            select.addEventListener("change", function () {
+                renderQr(select.value);
+            });
+
+            const label = document.createElement("label");
+            label.setAttribute("for", "card-select");
+            label.innerText = "Charge from";
+
+            const card = document.createElement("div");
+            card.className = "qr-card";
+            card.innerHTML = '<div id="qrcode"></div><p class="qr-caption" id="caption"></p>';
+
+            setup.innerHTML = "";
+            setup.append(label, select, card);
+
+            renderQr(APP_BALANCE);
+        }
+
+        init();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>

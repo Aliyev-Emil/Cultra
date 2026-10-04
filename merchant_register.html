@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="color-scheme" content="dark" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Become a merchant - Cultra</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0d1016;
+            --card: #181b22;
+            --secondary: #20242c;
+            --border: #353a43;
+            --cultra-gold: #d9a441;
+            --cultra-gold-bright: #f0c35a;
+            --text: #f5f5f5;
+            --text-2: #9299a8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--card);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 24px;
+        }
+
+        label {
+            display: block;
+            color: var(--text-2);
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        select {
+            width: 100%;
+            height: 56px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            color: var(--text);
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 22px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--cultra-gold, #d9a441);
+        }
+
+        /* Scanner */
+
+        #reader {
+            border-radius: 22px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .status {
+            color: var(--text-2);
+            font-size: 15px;
+            margin: 16px 4px 0;
+        }
+
+        .status.error {
+            color: #ff7a6b;
+        }
+
+        .status.ok {
+            color: #3fc08d;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+
+        .empty a {
+            color: var(--cultra-gold, #d9a441);
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* Confirm sheet */
+
+        .sheet-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.55);
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .sheet-bg.on {
+            display: flex;
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 26px 26px 0 0;
+            padding: 26px 24px 30px;
+        }
+
+        .sheet-to {
+            color: var(--cultra-gold, #d9a441);
+            font-weight: bold;
+            font-size: 15px;
+            margin: 0 0 8px;
+        }
+
+        .sheet-to:empty {
+            display: none;
+        }
+
+        .sheet-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 0 4px;
+        }
+
+        .sheet-sub {
+            color: var(--text-2);
+            font-size: 14px;
+            margin: 0 0 22px;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 18px;
+            background-color: var(--cultra-gold, #d9a441);
+            color: var(--bg);
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .btn-secondary {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            margin-bottom: 0;
+        }
+    
+        .lead {
+            color: var(--text-2);
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 24px;
+        }
+
+        select, input {
+            width: 100%;
+            height: 56px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            color: var(--text);
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 22px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--cultra-gold, #d9a441);
+        }
+
+        input::placeholder {
+            color: var(--text-2);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row > div {
+            flex: 1;
+        }
+
+        .message {
+            color: #ff7a6b;
+            font-size: 14px;
+            margin: 0 4px 12px;
+            min-height: 18px;
+        }
+
+        .message.ok {
+            color: #3fc08d;
+        }
+
+        .qr-card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--cultra-gold, #d9a441);
+            border-radius: 26px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        #qrcode {
+            background-color: white;
+            padding: 14px;
+            border-radius: 16px;
+        }
+
+        #qrcode:empty {
+            display: none;
+        }
+
+        .qr-caption {
+            color: var(--text-2);
+            font-size: 14px;
+            margin: 0;
+            text-align: center;
+        }
+
+        #qrcode:not(:empty) + .qr-caption {
+            margin-top: 18px;
+        }
+
+        /* category picker */
+
+        .cats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .cat {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            text-align: left;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .cat.selected {
+            border-color: var(--cultra-gold, #d9a441);
+            background-color: var(--secondary);
+        }
+
+        .cat-icon {
+            font-size: 26px;
+            width: 34px;
+            text-align: center;
+        }
+
+        .cat-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* theme: bright accent for interactive highlights, softer placeholder */
+
+        input::placeholder {
+            opacity: 0.6;
+        }
+
+        input:focus, select:focus, .sheet input:focus, .sheet select:focus {
+            border-color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .cat:hover, .main-button:hover {
+            border-color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .cat.selected {
+            border-color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .manage, .link, .connect, .empty a {
+            color: var(--cultra-gold-bright, #f0c35a);
+        }
+
+        .btn:not(.btn-secondary):hover:not(:disabled) {
+            background-color: var(--cultra-gold-bright, #f0c35a);
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+        <h1>Become a merchant</h1>
+        <p class="lead">Accept payments from customers straight into a merchant balance you can withdraw to your bank. Pick your category and the name customers will see.</p>
+
+        <div id="setup"></div>
+    </main>
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const API = "http://127.0.0.1:8000";
+        const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function el(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) node.textContent = text;   // textContent: names are user-typed, never HTML
+            return node;
+        }
+
+        // Returns the merchant profile, or sends the user where they need to go instead
+        async function requireMerchant() {
+            let data;
+            try {
+                const response = await fetch(API + "/merchant/" + user_id);
+                data = await response.json();
+            } catch (error) {
+                return { error: "Can't reach the server. Check that the backend is running." };
+            }
+
+            if (data.status !== "success") {
+                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+            }
+
+            if (!data.registered) {
+                window.location.href = "merchant_register.html";
+                return { error: "Redirecting..." };
+            }
+
+            return { merchant: data.merchant };
+        }
+
+        const setup = document.getElementById("setup");
+
+        function empty(html) {
+            setup.innerHTML = '<p class="empty">' + html + "</p>";
+        }
+
+        async function init() {
+            let info, cats;
+            try {
+                const results = await Promise.all([
+                    fetch(API + "/merchant/" + user_id).then(function (r) { return r.json(); }),
+                    fetch(API + "/merchant/categories").then(function (r) { return r.json(); })
+                ]);
+                info = results[0];
+                cats = results[1];
+            } catch (error) {
+                empty("Can't reach the server. Check that the backend is running.");
+                return;
+            }
+
+            if (info.status !== "success" || cats.status !== "success") {
+                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                return;
+            }
+
+            // Already a merchant: this form is only for the first time
+            if (info.registered) {
+                window.location.href = "merchant_main_page.html";
+                return;
+            }
+
+            let chosen = null;
+            const rows = {};
+
+            const catLabel = el("label", null, "Category");
+            const list = el("div", "cats");
+
+            Object.keys(cats.categories).forEach(function (id) {
+                const cat = cats.categories[id];
+                const row = el("button", "cat");
+                row.type = "button";
+                row.append(el("div", "cat-icon", cat.icon), el("div", "cat-name", cat.name));
+
+                row.addEventListener("click", function () {
+                    if (chosen) rows[chosen].classList.remove("selected");
+                    chosen = id;
+                    row.classList.add("selected");
+                    message.textContent = "";
+                });
+
+                rows[id] = row;
+                list.appendChild(row);
+            });
+
+            const nameLabel = el("label", null, "Business name");
+            nameLabel.setAttribute("for", "business-name");
+
+            const nameInput = document.createElement("input");
+            nameInput.id = "business-name";
+            nameInput.maxLength = 40;
+            nameInput.placeholder = "e.g. Pizza Place";
+            nameInput.autocomplete = "off";
+
+            const message = el("p", "message");
+            message.setAttribute("role", "status");
+
+            const submit = el("button", "btn", "Create merchant account");
+
+            submit.addEventListener("click", async function () {
+                const name = nameInput.value.trim();
+
+                if (!chosen) { message.textContent = "Pick a category."; return; }
+                if (name.length < 2) { message.textContent = "Enter your business name (at least 2 characters)."; return; }
+
+                submit.disabled = true;
+                message.textContent = "";
+
+                try {
+                    const response = await fetch(API + "/register_merchant", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ user_id: user_id, category: chosen, business_name: name })
+                    });
+                    const data = await response.json();
+
+                    if (data.status === "success") {
+                        window.location.href = "merchant_main_page.html";
+                        return;
+                    }
+                    message.textContent = data.reason || "Something went wrong.";
+                } catch (error) {
+                    message.textContent = "Can't reach the server. Check that the backend is running.";
+                }
+                submit.disabled = false;
+            });
+
+            setup.innerHTML = "";
+            setup.append(catLabel, list, nameLabel, nameInput, message, submit);
+        }
+
+        init();
+    </script>
+</body>
+</html>

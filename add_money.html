@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Balansı artır - Cultra</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 8px;
+        }
+
+        .lead {
+            color: #71809f;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 8px;
+        }
+
+        .warning {
+            color: #f7b232;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 0 0 24px;
+        }
+
+        label {
+            display: block;
+            color: #8491ad;
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        select, input {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 22px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        input::placeholder {
+            color: #596987;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row > div {
+            flex: 1;
+        }
+
+        .row select, .row input {
+            margin-bottom: 0;
+        }
+
+        .current {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 22px;
+            padding: 20px 22px;
+            margin-bottom: 26px;
+        }
+
+        .current-label {
+            color: #71809f;
+            font-size: 13px;
+            margin: 0 0 4px;
+        }
+
+        .current-amount {
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 18px;
+            background-color: #f79432;
+            color: #0d111d;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .message {
+            min-height: 22px;
+            margin: 14px 4px 0;
+            font-size: 14px;
+            color: #ff7a6b;
+        }
+
+        .message.ok {
+            color: #3fc08d;
+        }
+
+        .empty {
+            color: #71809f;
+            line-height: 1.5;
+        }
+
+        .empty a {
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+
+        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+
+        <h1>Balansı artır</h1>
+        <p class="lead">Bank kartından tətbiq balansınıza pul köçürün.</p>
+        <p class="warning">Bu proses yalnız bir tərəflidir: vəsait tətbiqdaxili balansınıza keçdikdən sonra onu yenidən bank kartına qaytarmaq mümkün deyil.</p>
+
+        <div class="current">
+            <p class="current-label">Cultra Balansınız</p>
+            <p class="current-amount" id="current-balance">₼0.00</p>
+        </div>
+
+        <div id="setup"></div>
+
+    </main>
+
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const setup = document.getElementById("setup");
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function empty(html) {
+            setup.innerHTML = '<p class="empty">' + html + "</p>";
+        }
+
+        async function refreshCurrentBalance() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/app-balance/" + user_id);
+                const data = await response.json();
+                if (data.status === "success") {
+                    document.getElementById("current-balance").innerText = "₼" + money(data.app_balance);
+                }
+            } catch (error) {
+                // leave whatever was last shown
+            }
+        }
+
+        async function init() {
+            let cardsData;
+            try {
+                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                cardsData = await response.json();
+            } catch (error) {
+                empty("Can't reach the server. Check that the backend is running.");
+                return;
+            }
+
+            if (cardsData.status !== "success") {
+                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                return;
+            }
+
+            const numbers = Object.keys(cardsData.accounts);
+
+            if (numbers.length === 0) {
+                empty('No cards yet. <a href="add_bank.html">Add a card</a> before moving money in.');
+                return;
+            }
+
+            setup.innerHTML =
+                '<label for="card-select">Bank hesabınız</label>' +
+                '<select id="card-select"></select>' +
+                '<div class="row">' +
+                '<div>' +
+                '<label for="amount-input">Məbləğ</label>' +
+                '<input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00" />' +
+                "</div>" +
+                '<div>' +
+                '<label for="currency-select">Valyuta</label>' +
+                '<select id="currency-select">' +
+                '<option value="AZN">AZN</option>' +
+                '<option value="USD">USD</option>' +
+                "</select>" +
+                "</div>" +
+                "</div>" +
+                '<button class="btn" id="submit">Balansı artır</button>' +
+                '<p class="message" id="result" role="status"></p>';
+
+            const select = document.getElementById("card-select");
+            numbers.forEach(function (number) {
+                const option = document.createElement("option");
+                option.value = number;
+                option.innerText = "•••• " + number.slice(-4) + " (₼" + money(cardsData.accounts[number].balance) + ")";
+                select.appendChild(option);
+            });
+
+            const submit = document.getElementById("submit");
+            const result = document.getElementById("result");
+
+            function show(text, ok) {
+                result.innerText = text;
+                result.className = ok ? "message ok" : "message";
+            }
+
+            submit.addEventListener("click", async function () {
+                const amount = parseFloat(document.getElementById("amount-input").value);
+
+                if (!amount || amount <= 0) {
+                    show("Enter an amount first.", false);
+                    return;
+                }
+
+                submit.disabled = true;
+                show("", false);
+
+                try {
+                    const response = await fetch("http://127.0.0.1:8000/app-balance", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            user_id: user_id,
+                            card_number: select.value,
+                            amount: amount,
+                            currency: document.getElementById("currency-select").value
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === "success") {
+                        show("Added to your app balance.", true);
+                        document.getElementById("current-balance").innerText = "₼" + money(data.app_balance);
+                        document.getElementById("amount-input").value = "";
+                        init(); // refresh the card list so the new balance shows
+                        window.location.href = "main_menu.html";
+                    } else {
+                        show("Failed: " + (data.reason || "unknown error"), false);
+                    }
+
+                } catch (error) {
+                    show("Can't reach the server. Check that the backend is running.", false);
+                }
+
+                submit.disabled = false;
+            });
+        }
+
+        refreshCurrentBalance();
+        init();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>

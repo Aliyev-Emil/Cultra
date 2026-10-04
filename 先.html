@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cultra</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Brand */
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .brand-mark {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background-color: #f79432;
+            color: #0d111d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+
+        /* Illustration: three banks merge into one balance */
+
+        .visual {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 0 28px;
+        }
+
+        .visual {
+            transition: opacity 0.5s;
+        }
+
+        .visual.fade {
+            opacity: 0;
+        }
+
+        .stage {
+            position: relative;
+            width: 100%;
+            height: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banks {
+            display: flex;
+            gap: 14px;
+            transition: opacity 0.4s;
+        }
+
+        .banks.off {
+            opacity: 0;
+        }
+
+        .bank-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            opacity: 0;
+            transform: scale(0.6) translateY(10px);
+            transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+        }
+
+        .bank-logo.on {
+            opacity: 1;
+            transform: none;
+        }
+
+        .abb {
+            background-color: #326a9d;
+        }
+
+        .kapital {
+            background-color: #cf493f;
+        }
+
+        .pasha {
+            background-color: #159363;
+        }
+
+        .link {
+            width: 2px;
+            height: 34px;
+            background-color: #f79432;
+            transform-origin: top;
+            transform: scaleY(0);
+            transition: transform 0.5s ease-out;
+        }
+
+        .link.on {
+            transform: scaleY(1);
+        }
+
+        /* QR code */
+
+        .qr {
+            position: absolute;
+            width: 92px;
+            height: 92px;
+            padding: 9px;
+            background-color: white;
+            border-radius: 14px;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.4s, transform 0.4s;
+        }
+
+        .qr.on {
+            opacity: 1;
+            transform: none;
+        }
+
+        .qr i {
+            display: block;
+        }
+
+        .qr i.f {
+            background-color: #0d111d;
+        }
+
+        .scan {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            top: 9px;
+            height: 2px;
+            background-color: #f79432;
+            box-shadow: 0 0 10px #f79432;
+            opacity: 0;
+        }
+
+        .scan.go {
+            animation: sweep 1.2s ease-in-out;
+        }
+
+        .paid {
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background-color: #159363;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0.85);
+            transition: opacity 0.3s, transform 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+        }
+
+        .paid.on {
+            opacity: 1;
+            transform: none;
+        }
+
+        @keyframes sweep {
+            0% {
+                top: 9px;
+                opacity: 1;
+            }
+
+            100% {
+                top: 81px;
+                opacity: 1;
+            }
+        }
+
+        .chip {
+            position: absolute;
+            top: 22px;
+            right: 22px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            background-color: rgba(247, 148, 50, 0.15);
+            color: #f79432;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .chip.on {
+            opacity: 1;
+            transform: none;
+        }
+
+        .balance-box {
+            position: relative;
+            width: 100%;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 28px;
+            padding: 24px 27px;
+        }
+
+        .balance-title {
+            color: #8491ad;
+            margin: 0;
+        }
+
+        .balance {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .balance-decimal {
+            color: #8795b5;
+            font-size: 23px;
+        }
+
+        .balance-subtitle {
+            color: #596987;
+            margin: 0;
+        }
+
+        /* Copy */
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 0 0 12px;
+        }
+
+        .lead {
+            color: #71809f;
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 0 0 28px;
+        }
+
+        /* Buttons */
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            height: 56px;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background-color: #f79432;
+            border: none;
+            color: #0d111d;
+        }
+
+        .btn-secondary {
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            color: white;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid #f79432;
+            outline-offset: 3px;
+        }
+
+        .btn-primary:active,
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .visual,
+            .bank-logo,
+            .link,
+            .qr,
+            .paid,
+            .chip {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+
+        <div class="brand">
+            <div class="brand-mark">C</div>
+            Cultra
+        </div>
+
+        <div class="visual" id="visual" aria-hidden="true">
+            <div class="stage">
+                <div class="banks" id="banks">
+                    <img class="bank-logo" src="images/ABB.png" alt="ABB">
+                    <img class="bank-logo" src="images/Kapital.png" alt="Kapital">
+                    <img class="bank-logo" src="images/Pasha.png" alt="Pasha">
+                </div>
+                <div class="qr" id="qr">
+                    <div class="scan" id="scan"></div>
+                    <div class="paid" id="paid">✓</div>
+                </div>
+            </div>
+            <div class="link on" id="link"></div>
+            <div class="balance-box">
+                <div class="chip" id="chip">-₼4.80</div>
+                <p class="balance-title">Ümumi balans</p>
+                <div class="balance" id="balance">₼2,470<span class="balance-decimal">.00</span></div>
+                <p class="balance-subtitle" id="subtitle">3 bankda</p>
+            </div>
+        </div>
+
+        <h1>Bütün bankların bir tətbiqdə.</h1>
+        <p class="lead">Kartlarını əlavə et, ödənişlərini rahat et.</p>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="window.location.href='register.html'">
+                Hesab yarat
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.href='login.html'">
+                Daxil ol
+            </button>
+        </div>
+
+    </main>
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const visual = $("visual"), banksEl = $("banks"), qr = $("qr"), scan = $("scan");
+        const paid = $("paid"), link = $("link"), chip = $("chip");
+        const balanceEl = $("balance"), subtitle = $("subtitle");
+        const tiles = [...banksEl.children];
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        // Build a QR-looking 9x9 grid: solid corner markers plus a fixed pattern
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const corner = (r < 3 && c < 3) || (r < 3 && c > 5) || (r > 5 && c < 3);
+                const cell = document.createElement("i");
+                if (corner || (r * 7 + c * 13 + r * c) % 3 !== 0) cell.className = "f";
+                qr.insertBefore(cell, scan);
+            }
+        }
+
+        // Balance display + count animation
+        let current = 0;
+
+        function render(v) {
+            const cents = Math.round(v * 100);
+            const whole = Math.floor(cents / 100).toLocaleString("en-US");
+            const dec = String(cents % 100).padStart(2, "0");
+            balanceEl.innerHTML = "₼" + whole + '<span class="balance-decimal">.' + dec + "</span>";
+            current = v;
+        }
+
+        function countTo(to, ms) {
+            return new Promise((resolve) => {
+                const from = current, start = performance.now();
+                (function tick(now) {
+                    const t = Math.min((now - start) / ms, 1);
+                    render(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+                    t < 1 ? requestAnimationFrame(tick) : resolve();
+                })(start);
+            });
+        }
+
+        function reset() {
+            tiles.forEach((t) => t.classList.remove("on"));
+            link.classList.remove("on");
+            banksEl.classList.remove("off");
+            qr.classList.remove("on");
+            paid.classList.remove("on");
+            chip.classList.remove("on");
+            render(0);
+            subtitle.innerText = "İlk bankınızı qoşun";
+        }
+
+        async function connect(i, total, label) {
+            tiles[i].classList.add("on");
+            link.classList.add("on");
+            subtitle.innerText = "Ümumi " + (i + 1) + " bank";
+            await countTo(total, 700);
+            await sleep(500);
+        }
+
+        async function cycle() {
+            reset();
+            visual.classList.remove("fade");
+            await sleep(900);
+
+            // 1. Banks connect and the balance adds up
+            await connect(0, 850);
+            await connect(1, 1270);
+            await connect(2, 2470);
+            await sleep(700);
+
+            // 2. Scan a QR code to pay
+            banksEl.classList.add("off");
+            await sleep(300);
+            qr.classList.add("on");
+            subtitle.innerText = "Ödəniş üçün skan edilir";
+            await sleep(500);
+            scan.classList.add("go");
+            await sleep(1300);
+            scan.classList.remove("go");
+
+            // 3. Paid
+            paid.classList.add("on");
+            chip.classList.add("on");
+            subtitle.innerText = "Kafedə Ödəniş Edildi";
+            await countTo(2465.2, 700);
+            await sleep(2200);
+
+            visual.classList.add("fade");
+            await sleep(600);
+        }
+
+        (async function loop() {
+            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; // keep the static final state
+            while (true) await cycle();
+        })();
+    </script>
+</body>
+
+</html>

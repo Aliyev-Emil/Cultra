@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scan - Cultra</title>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 24px;
+        }
+
+        label {
+            display: block;
+            color: #8491ad;
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        select {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 22px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        /* Scanner */
+
+        #reader {
+            border-radius: 22px;
+            overflow: hidden;
+            border: 1px solid #30394c;
+        }
+
+        .status {
+            color: #71809f;
+            font-size: 15px;
+            margin: 16px 4px 0;
+        }
+
+        .status.error {
+            color: #ff7a6b;
+        }
+
+        .status.ok {
+            color: #3fc08d;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: #71809f;
+            line-height: 1.5;
+        }
+
+        .empty a {
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* Confirm sheet */
+
+        .sheet-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.55);
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .sheet-bg.on {
+            display: flex;
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 420px;
+            background-color: #131a2b;
+            border: 1px solid #30394c;
+            border-radius: 26px 26px 0 0;
+            padding: 26px 24px 30px;
+        }
+
+        .sheet-to {
+            color: #f79432;
+            font-weight: bold;
+            font-size: 15px;
+            margin: 0 0 8px;
+        }
+
+        .sheet-to:empty {
+            display: none;
+        }
+
+        .sheet-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 0 4px;
+        }
+
+        .sheet-sub {
+            color: #71809f;
+            font-size: 14px;
+            margin: 0 0 22px;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 18px;
+            background-color: #f79432;
+            color: #0d111d;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .btn-secondary {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            color: white;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+
+        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+
+        <h1>Scan a code</h1>
+
+        <div id="setup"></div>
+
+    </main>
+
+    <!-- Confirm payment sheet -->
+    <div class="sheet-bg" id="sheet-bg">
+        <div class="sheet">
+            <div id="amount-input-wrap" style="display:none;">
+                <label for="amount-input" id="amount-label">Amount to pay</label>
+                <input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00"
+                    style="width:100%;height:56px;background-color:#0d111d;border:1px solid #30394c;border-radius:18px;color:white;font-size:16px;font-family:inherit;padding:0 18px;margin-bottom:18px;box-sizing:border-box;" />
+            </div>
+            <p class="sheet-to" id="sheet-to"></p>
+            <p class="sheet-amount" id="sheet-amount">₼0.00</p>
+            <p class="sheet-sub" id="sheet-sub">Paying with •••• 0000</p>
+            <button class="btn" id="confirm-btn">Confirm payment</button>
+            <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const setup = document.getElementById("setup");
+        const sheetBg = document.getElementById("sheet-bg");
+        const sheetAmount = document.getElementById("sheet-amount");
+        const sheetSub = document.getElementById("sheet-sub");
+        const sheetTo = document.getElementById("sheet-to");
+        const confirmBtn = document.getElementById("confirm-btn");
+        const cancelBtn = document.getElementById("cancel-btn");
+
+        const APP_BALANCE = "APP_BALANCE"; // must match main.py
+
+        let selectedCard = null;
+        let scanner = null;
+        let pendingQr = null;
+        let accounts = {};   // card number -> { balance, ... }
+        let appBalance = 0;
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function accountLabel(id) {
+            return id === APP_BALANCE ? "Cultra balance" : "•••• " + id.slice(-4);
+        }
+
+        // Fetches cards + app balance. Returns null if the server can't be reached.
+        async function fetchAccounts() {
+            try {
+                const [cardsRes, balRes] = await Promise.all([
+                    fetch("http://127.0.0.1:8000/bankcards/" + user_id),
+                    fetch("http://127.0.0.1:8000/app-balance/" + user_id)
+                ]);
+                return { cards: await cardsRes.json(), bal: await balRes.json() };
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // (Re)builds the dropdown options, keeping the current selection.
+        function fillSelect() {
+            const select = document.getElementById("card-select");
+            if (!select) return;
+            select.innerHTML = "";
+
+            function add(value, text) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.innerText = text;
+                select.appendChild(option);
+            }
+
+            add(APP_BALANCE, "Cultra balance (₼" + money(appBalance) + ")");
+            Object.keys(accounts).forEach(function (number) {
+                add(number, "•••• " + number.slice(-4) + " (₼" + money(accounts[number].balance) + ")");
+            });
+            select.value = selectedCard;
+        }
+
+        // Called after money moves so the dropdown shows up-to-date balances.
+        async function refreshAccounts() {
+            const result = await fetchAccounts();
+            if (!result || result.cards.status !== "success" || result.bal.status !== "success") return;
+            accounts = result.cards.accounts;
+            appBalance = result.bal.app_balance;
+            fillSelect();
+        }
+
+        function empty(html) {
+            setup.innerHTML = '<p class="empty">' + html + "</p>";
+        }
+
+        async function init() {
+            const result = await fetchAccounts();
+
+            if (!result) {
+                empty("Can't reach the server. Check that the backend is running.");
+                return;
+            }
+
+            if (result.cards.status !== "success" || result.bal.status !== "success") {
+                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                return;
+            }
+
+            accounts = result.cards.accounts;
+            appBalance = result.bal.app_balance;
+
+            // Everyone has a Cultra balance, so there's always something to pay with.
+            // Start on it if it has money (or if there are no cards), otherwise the first card.
+            const numbers = Object.keys(accounts);
+            selectedCard = (appBalance > 0 || numbers.length === 0) ? APP_BALANCE : numbers[0];
+
+            const select = document.createElement("select");
+            select.id = "card-select";
+            select.addEventListener("change", function () {
+                selectedCard = select.value;
+            });
+
+            const label = document.createElement("label");
+            label.id = "card-label";
+            label.setAttribute("for", "card-select");
+            label.innerText = "Pay with";
+
+            const reader = document.createElement("div");
+            reader.id = "reader";
+
+            const status = document.createElement("p");
+            status.id = "status";
+            status.className = "status";
+            status.innerText = "Point the camera at a QR code.";
+
+            setup.innerHTML = "";
+            setup.append(label, select, reader, status);
+            fillSelect();
+
+            scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 500 });
+            scanner.render(onScanSuccess);
+        }
+
+        function setStatus(text, kind) {
+            const status = document.getElementById("status");
+            if (status) status.className = "status" + (kind ? " " + kind : "");
+            if (status) status.innerText = text;
+        }
+
+        let mode = null; // "pay" (fixed amount) or "pay_any" (we type the amount)
+        const amountWrap = document.getElementById("amount-input-wrap");
+        const amountInput = document.getElementById("amount-input");
+        const amountLabel = document.getElementById("amount-label");
+
+        // Merchant codes: look up the business name so the payer sees who they're paying
+        async function showReceiverName(qr) {
+            const receiverId = qr.split(":")[1];
+            try {
+                const response = await fetch("http://127.0.0.1:8000/merchant/public/" + receiverId);
+                const data = await response.json();
+
+                if (pendingQr !== qr || data.status !== "success") return; // sheet closed / unknown
+
+                sheetTo.innerText = (data.category_info ? data.category_info.icon + " " : "") + data.business_name;
+            } catch (error) {
+                // not critical, the payment still works without the name
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+
+            if (pendingQr) return; // a scan is already being confirmed
+
+            const parts = decodedText.split(":");
+            const isPayCode = parts[0] === "PAY" && parts.length >= 5;
+            const isMerchantCode = isPayCode && parts[2] === "MERCHANT_BALANCE";
+
+            if (isMerchantCode && parts[3].toLowerCase() === "any") {
+                // Merchants only ever hand out fixed-amount codes
+                setStatus("This merchant code has no amount. Ask them to generate a new one.", "error");
+
+            } else if (isPayCode && parts[3].toLowerCase() === "any") {
+                // Their "receive QR" with no fixed amount: we choose how much to pay,
+                // and it's sent right away (no approval needed from them)
+                mode = "pay_any";
+                pendingQr = decodedText;
+
+                const currency = parts[4];
+
+                amountWrap.style.display = "block";
+                amountInput.value = "";
+                amountLabel.innerText = "Amount to pay (" + currency + ")";
+                sheetTo.innerText = "";
+                sheetAmount.innerText = "Enter an amount";
+                sheetSub.innerText = "Paying with " + accountLabel(selectedCard);
+
+                sheetBg.classList.add("on");
+                setTimeout(function () { amountInput.focus(); }, 50);
+
+            } else if (isPayCode) {
+                // Someone else's "pay them" code, with a fixed amount already set:
+                // we pay immediately on confirm
+                mode = "pay";
+                pendingQr = decodedText;
+
+                const amount = parts[3];
+                const currency = parts[4];
+
+                amountWrap.style.display = "none";
+                sheetTo.innerText = "";
+                sheetAmount.innerText = (currency === "AZN" ? "₼" : currency + " ") + amount;
+                sheetSub.innerText = "Paying with " + accountLabel(selectedCard);
+
+                sheetBg.classList.add("on");
+                if (isMerchantCode) showReceiverName(decodedText);
+
+            } else if (parts[0] === "PAY_QR") {
+                // Customer payment codes are for merchants to scan (from the merchant page)
+                setStatus("That's a customer payment code. Only merchants can scan it, from the merchant page.", "error");
+
+            } else {
+                setStatus("That doesn't look like a Cultra payment code.", "error");
+            }
+        }
+
+        function closeSheet() {
+            sheetBg.classList.remove("on");
+            pendingQr = null;
+            mode = null;
+            amountWrap.style.display = "none";
+            sheetTo.innerText = "";
+        }
+
+        cancelBtn.addEventListener("click", closeSheet);
+
+        confirmBtn.addEventListener("click", async function () {
+
+            if (mode === "pay_any") {
+                const amount = parseFloat(amountInput.value);
+                if (!amount || amount <= 0) {
+                    amountInput.focus();
+                    return;
+                }
+            }
+
+            confirmBtn.disabled = true;
+
+            try {
+                let response;
+
+                if (mode === "pay") {
+                    response = await fetch("http://127.0.0.1:8000/pay", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            qr_data: pendingQr,
+                            card_number: selectedCard,
+                            user_id: user_id
+                        })
+                    });
+
+                } else {
+                    // Swap the "any" placeholder for the amount they just typed in
+                    const parts = pendingQr.split(":");
+                    parts[3] = parseFloat(amountInput.value).toFixed(2);
+
+                    response = await fetch("http://127.0.0.1:8000/pay", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            qr_data: parts.join(":"),
+                            card_number: selectedCard,
+                            user_id: user_id
+                        })
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    setStatus("Payment sent.", "ok");
+                    closeSheet();
+                    refreshAccounts();
+                } else {
+                    setStatus("Failed: " + (data.reason || "unknown error"), "error");
+                    closeSheet();
+                }
+
+            } catch (error) {
+                setStatus("Can't reach the server. Check that the backend is running.", "error");
+                closeSheet();
+            }
+
+            confirmBtn.disabled = false;
+        });
+
+        init();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>
