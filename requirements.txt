@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+pg8000          # PostgreSQL driver (pure Python): used when DATABASE_URL is set, i.e. on Render
 
 # Optional, only for the dev helper scripts (qr_test.py, scan_qr.py):
 # qrcode[pil]

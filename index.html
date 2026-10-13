@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
@@ -327,6 +327,11 @@
             }
         }
     </style>
+    <script src="config.js"></script>
+    <script>
+        // Already logged in (the app remembers you): straight to the home screen
+        if (getUserId()) window.location.replace("main_menu.html");
+    </script>
 </head>
 
 <body>
@@ -358,8 +363,8 @@
             </div>
         </div>
 
-        <h1>Bütün bankların bir tətbiqdə.</h1>
-        <p class="lead">Kartlarını əlavə et, ödənişlərini rahat et.</p>
+        <h1>Bütün banklarınız bir tətbiqdə.</h1>
+        <p class="lead">Kartlarınızı əlavə edin, rahat ödəyin.</p>
 
         <div class="actions">
             <button class="btn btn-primary" onclick="window.location.href='register.html'">
@@ -454,7 +459,7 @@
             // 3. Paid
             paid.classList.add("on");
             chip.classList.add("on");
-            subtitle.innerText = "Kafedə Ödəniş Edildi";
+            subtitle.innerText = "Kafedə ödəniş edildi";
             await countTo(2465.2, 700);
             await sleep(2200);
 

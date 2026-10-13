@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
@@ -87,6 +87,16 @@
             margin-top: 4px;
         }
 
+        .card-text {
+            flex: 1;
+        }
+
+        .card-balance {
+            font-weight: bold;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
         /* Empty and error states */
 
         .empty {
@@ -134,12 +144,13 @@
             width: 100%;
         }
     </style>
+    <script src="config.js"></script>
 </head>
 
 <body>
     <main class="page">
 
-        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+        <a class="back" href="main_menu.html" aria-label="Ana səhifəyə qayıt">←</a>
 
         <h1>Bank kartlarınız</h1>
 
@@ -154,6 +165,10 @@
     <script>
         const accounts = document.getElementById("accounts");
 
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
         function message(html, isError) {
             accounts.innerHTML = '<p class="empty' + (isError ? " error" : "") + '">' + html + "</p>";
         }
@@ -161,20 +176,20 @@
         async function loadAccounts() {
 
             // Get the logged-in user's ID
-            const user_id = sessionStorage.getItem("user_id");
+            const user_id = getUserId();
 
             // Not logged in: go back to the welcome page
             if (!user_id) {
-                window.location.href = "先.html";
+                window.location.replace("index.html");
                 return;
             }
 
             try {
-                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                const response = await fetch(API + "/bankcards/" + user_id);
                 const data = await response.json();
 
                 if (data.status !== "success") {
-                    message('Your session has expired. <a href="login.html">Log in again</a>', true);
+                    message('Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>', true);
                     return;
                 }
 
@@ -195,18 +210,20 @@
 
                     const card = document.createElement("div");
                     card.className = "card";
+                    // Only numbers from the server go into this HTML, no user-typed text
                     card.innerHTML =
                         '<div class="card-icon">💳</div>' +
-                        "<div>" +
+                        '<div class="card-text">' +
                         '<div class="card-number">•••• •••• •••• ' + lastFour + "</div>" +
-                        '<div class="card-balance">Balans: ' + info.balance + " Azn" + "</div>" +
-                        "</div>";
+                        '<div class="card-expiry">Bitmə tarixi ' + info.month + "/" + info.year + "</div>" +
+                        "</div>" +
+                        '<div class="card-balance">₼' + money(info.balance) + "</div>";
 
                     accounts.appendChild(card);
                 }
 
             } catch (error) {
-                message("Can't reach the server. Check that the backend is running.", true);
+                message(SERVER_ERROR, true);
             }
         }
 

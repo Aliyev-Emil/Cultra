@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <title>Merchant bank accounts - Cultra</title>
+    <title>Biznes bank hesabları - Cultra</title>
 
     <style>
         :root {
@@ -559,31 +559,31 @@
             background-color: var(--cultra-gold-bright, #f0c35a);
         }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="header">
-        <a class="notification" href="merchant_main_page.html" aria-label="Back to merchant page" style="text-decoration:none;color:var(--text);">←</a>
+        <a class="notification" href="merchant_main_page.html" aria-label="Biznes səhifəsinə qayıt" style="text-decoration:none;color:var(--text);">←</a>
     </div>
 
-    <h1 style="font-size:28px;margin:26px 0 8px;">Merchant bank accounts</h1>
+    <h1 style="font-size:28px;margin:26px 0 8px;">Biznes bank hesabları</h1>
 
     <div id="banks-list">
-        <p class="empty">Loading...</p>
+        <p class="empty">Yüklənir...</p>
     </div>
 
     <button class="connect" onclick="window.location.href='add_bank.html?type=merchant'">
         <div class="plus">+</div>
-        Add merchant bank account
+        Biznes bank hesabı əlavə et
     </button>
 
     <script>
 
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
-        const API = "http://127.0.0.1:8000";
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
         function money(n) {
@@ -604,16 +604,16 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Can't reach the server. Check that the backend is running." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
-                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+                return { error: 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>' };
             }
 
             if (!data.registered) {
                 window.location.href = "merchant_register.html";
-                return { error: "Redirecting..." };
+                return { error: "Yönləndirilir..." };
             }
 
             return { merchant: data.merchant };
@@ -628,13 +628,13 @@
                 const response = await fetch(API + "/bankcards/" + user_id + "?type=merchant");
                 data = await response.json();
             } catch (error) {
-                list.innerHTML = '<p class="empty">Can\'t reach the server. Check that the backend is running.</p>';
+                list.innerHTML = '<p class="empty">' + SERVER_ERROR + '</p>';
                 return;
             }
 
             if (data.status !== "success") {
-                if (data.reason === "You're not a merchant") { window.location.href = "merchant_register.html"; return; }
-                list.innerHTML = '<p class="empty">Your session has expired. <a href="login.html">Log in again</a></p>';
+                if (data.reason === "Biznes hesabınız yoxdur") { window.location.href = "merchant_register.html"; return; }
+                list.innerHTML = '<p class="empty">Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a></p>';
                 return;
             }
 
@@ -642,14 +642,14 @@
             list.innerHTML = "";
 
             if (numbers.length === 0) {
-                list.appendChild(el("p", "empty", "No merchant bank account yet. Add one to withdraw your balance."));
+                list.appendChild(el("p", "empty", "Hələ biznes bank hesabı yoxdur. Balansı köçürmək üçün hesab əlavə edin."));
                 return;
             }
 
             numbers.forEach(function (number) {
                 const row = el("div", "bank");
                 const info = el("div", "bank-info");
-                info.append(el("div", "bank-name", "•••• " + number.slice(-4)), el("div", "bank-status", "Withdrawals go here"));
+                info.append(el("div", "bank-name", "•••• " + number.slice(-4)), el("div", "bank-status", "Köçürmələr bura gəlir"));
                 const logo = el("div", "bank-logo");
                 logo.innerHTML = CARD_ICON;   // fixed markup, not user text
                 row.append(logo, info, el("div", "bank-balance", "₼" + money(data.accounts[number].balance)));

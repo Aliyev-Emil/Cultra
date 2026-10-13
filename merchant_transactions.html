@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <title>Transactions - Cultra</title>
+    <title>Tarixçə - Biznes - Cultra</title>
 
     <style>
         :root {
@@ -558,27 +558,63 @@
         .btn:not(.btn-secondary):hover:not(:disabled) {
             background-color: var(--cultra-gold-bright, #f0c35a);
         }
+
+        /* Checkout sales: the products sold, shown when the row is tapped */
+        .purchase.has-items {
+            cursor: pointer;
+        }
+
+        .items-toggle {
+            color: var(--cultra-gold-bright, #f0c35a);
+            font-weight: bold;
+        }
+
+        .purchase-items {
+            display: none;
+            margin: -4px 0 10px 57px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .purchase-items.open {
+            display: block;
+        }
+
+        .purchase-items div {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 3px 0;
+        }
+
+        .purchase-items span:last-child {
+            color: var(--text-2);
+            white-space: nowrap;
+        }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="header">
-        <a class="notification" href="merchant_main_page.html" aria-label="Back to merchant page" style="text-decoration:none;color:var(--text);">←</a>
+        <a class="notification" href="merchant_main_page.html" aria-label="Biznes səhifəsinə qayıt" style="text-decoration:none;color:var(--text);">←</a>
     </div>
 
-    <h1 style="font-size:28px;margin:26px 0 8px;">All transactions</h1>
+    <h1 style="font-size:28px;margin:26px 0 8px;">Bütün əməliyyatlar</h1>
 
     <div id="activity-list">
-        <p class="empty">Loading...</p>
+        <p class="empty">Yüklənir...</p>
     </div>
 
     <script>
 
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
-        const API = "http://127.0.0.1:8000";
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
         function money(n) {
@@ -599,25 +635,28 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Can't reach the server. Check that the backend is running." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
-                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+                return { error: 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>' };
             }
 
             if (!data.registered) {
                 window.location.href = "merchant_register.html";
-                return { error: "Redirecting..." };
+                return { error: "Yönləndirilir..." };
             }
 
             return { merchant: data.merchant };
         }
 
+        // "13 okt, 17:47". Written out by hand: not every browser has Azerbaijani month names built in
+        const AZ_MONTHS = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek"];
+
         function formatWhen(iso) {
             const d = new Date(iso);
-            return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " +
-                d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            return d.getDate() + " " + AZ_MONTHS[d.getMonth()] + ", " +
+                String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
         }
 
         async function load() {
@@ -628,31 +667,33 @@
                 const response = await fetch(API + "/merchant/transactions/" + user_id + "?limit=0");
                 data = await response.json();
             } catch (error) {
-                list.innerHTML = '<p class="empty">Can\'t reach the server. Check that the backend is running.</p>';
+                list.innerHTML = '<p class="empty">' + SERVER_ERROR + '</p>';
                 return;
             }
 
             if (data.status !== "success") {
-                if (data.reason === "You're not a merchant") { window.location.href = "merchant_register.html"; return; }
-                list.innerHTML = '<p class="empty">Your session has expired. <a href="login.html">Log in again</a></p>';
+                if (data.reason === "Biznes hesabınız yoxdur") { window.location.href = "merchant_register.html"; return; }
+                list.innerHTML = '<p class="empty">Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a></p>';
                 return;
             }
 
             list.innerHTML = "";
 
             if (data.transactions.length === 0) {
-                list.appendChild(el("p", "empty", "No transactions yet."));
+                list.appendChild(el("p", "empty", "Hələ heç bir əməliyyat yoxdur."));
                 return;
             }
 
             data.transactions.forEach(function (tx) {
                 const withdrawal = tx.direction === "withdrawal";
+                const items = Array.isArray(tx.items) ? tx.items : [];
 
-                const row = el("div", "purchase");
+                const row = el("div", "purchase" + (items.length ? " has-items" : ""));
                 const info = el("div", "purchase-info");
+                const date = el("div", "purchase-date", formatWhen(tx.at));
                 info.append(
-                    el("div", "purchase-name", withdrawal ? "Withdrawn to •••• " + tx.card_number.slice(-4) : "Payment from " + tx.other_username),
-                    el("div", "purchase-date", formatWhen(tx.at))
+                    el("div", "purchase-name", withdrawal ? "Hesaba köçürüldü: •••• " + tx.card_number.slice(-4) : "Qəbul edildi: " + tx.other_username),
+                    date
                 );
 
                 row.append(
@@ -661,6 +702,27 @@
                     el("div", "purchase-amount " + (withdrawal ? "sent" : "received"), (withdrawal ? "-" : "+") + "₼" + money(tx.amount))
                 );
                 list.appendChild(row);
+
+                // Checkout sales: tap to see what was sold
+                if (items.length) {
+                    const count = items.reduce(function (sum, item) { return sum + item.qty; }, 0);
+                    date.append(" · ", el("span", "items-toggle", count + " məhsul ▾"));
+
+                    const box = el("div", "purchase-items");
+                    items.forEach(function (item) {
+                        const line = el("div");
+                        line.append(
+                            el("span", null, (item.qty > 1 ? item.qty + " × " : "") + item.name),
+                            el("span", null, "₼" + money(Math.round(item.price * 100) * item.qty / 100))
+                        );
+                        box.appendChild(line);
+                    });
+                    list.appendChild(box);
+
+                    row.addEventListener("click", function () {
+                        box.classList.toggle("open");
+                    });
+                }
             });
         }
 

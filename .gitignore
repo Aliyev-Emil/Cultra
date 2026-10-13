@@ -12,3 +12,16 @@ env/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Data saved by the backend on your laptop (storage.py)
+cultra.db
+cultra.db-journal
+
+# Phone app (Capacitor): made by "npm install" / "npm run android:setup" / "npm run build"
+node_modules/
+/www/
+/android/
+
+# App signing keys: keep them safe, never put them in git
+*.jks
+*.keystore

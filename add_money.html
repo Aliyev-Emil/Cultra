@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
@@ -164,19 +164,20 @@
             text-decoration: none;
         }
     </style>
+    <script src="config.js"></script>
 </head>
 
 <body>
     <main class="page">
 
-        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+        <a class="back" href="main_menu.html" aria-label="Ana səhifəyə qayıt">←</a>
 
         <h1>Balansı artır</h1>
         <p class="lead">Bank kartından tətbiq balansınıza pul köçürün.</p>
         <p class="warning">Bu proses yalnız bir tərəflidir: vəsait tətbiqdaxili balansınıza keçdikdən sonra onu yenidən bank kartına qaytarmaq mümkün deyil.</p>
 
         <div class="current">
-            <p class="current-label">Cultra Balansınız</p>
+            <p class="current-label">Cultra balansınız</p>
             <p class="current-amount" id="current-balance">₼0.00</p>
         </div>
 
@@ -185,10 +186,10 @@
     </main>
 
     <script>
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
         const setup = document.getElementById("setup");
 
@@ -202,7 +203,7 @@
 
         async function refreshCurrentBalance() {
             try {
-                const response = await fetch("http://127.0.0.1:8000/app-balance/" + user_id);
+                const response = await fetch(API + "/app-balance/" + user_id);
                 const data = await response.json();
                 if (data.status === "success") {
                     document.getElementById("current-balance").innerText = "₼" + money(data.app_balance);
@@ -215,22 +216,22 @@
         async function init() {
             let cardsData;
             try {
-                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                const response = await fetch(API + "/bankcards/" + user_id);
                 cardsData = await response.json();
             } catch (error) {
-                empty("Can't reach the server. Check that the backend is running.");
+                empty(SERVER_ERROR);
                 return;
             }
 
             if (cardsData.status !== "success") {
-                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                empty('Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>');
                 return;
             }
 
             const numbers = Object.keys(cardsData.accounts);
 
             if (numbers.length === 0) {
-                empty('No cards yet. <a href="add_bank.html">Add a card</a> before moving money in.');
+                empty('Hələ kartınız yoxdur. Balansı artırmaq üçün əvvəlcə <a href="add_bank.html">kart əlavə edin</a>.');
                 return;
             }
 
@@ -273,7 +274,7 @@
                 const amount = parseFloat(document.getElementById("amount-input").value);
 
                 if (!amount || amount <= 0) {
-                    show("Enter an amount first.", false);
+                    show("Əvvəlcə məbləği daxil edin.", false);
                     return;
                 }
 
@@ -281,7 +282,7 @@
                 show("", false);
 
                 try {
-                    const response = await fetch("http://127.0.0.1:8000/app-balance", {
+                    const response = await fetch(API + "/app-balance", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -295,17 +296,20 @@
                     const data = await response.json();
 
                     if (data.status === "success") {
-                        show("Added to your app balance.", true);
-                        document.getElementById("current-balance").innerText = "₼" + money(data.app_balance);
-                        document.getElementById("amount-input").value = "";
-                        init(); // refresh the card list so the new balance shows
+                        // Done: back to the main menu, with a short confirmation there (like after a payment)
+                        try {
+                            sessionStorage.setItem("cultra_flash", "Cultra balansı artırıldı · yeni balans ₼" + money(data.app_balance));
+                        } catch (error) {
+                            // no banner, still go home
+                        }
                         window.location.href = "main_menu.html";
+                        return;
                     } else {
-                        show("Failed: " + (data.reason || "unknown error"), false);
+                        show(data.reason || "Balansı artırmaq alınmadı", false);
                     }
 
                 } catch (error) {
-                    show("Can't reach the server. Check that the backend is running.", false);
+                    show(SERVER_ERROR, false);
                 }
 
                 submit.disabled = false;

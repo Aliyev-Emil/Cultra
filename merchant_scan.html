@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 <head>
     <meta name="color-scheme" content="dark" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scan - Cultra</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>Kassa - Biznes - Cultra</title>
+    <script src="vendor/html5-qrcode.min.js"></script>
+    <script src="scanner_az.js"></script>
     <style>
         :root {
             color-scheme: dark;
@@ -90,6 +91,204 @@
             border-radius: 22px;
             overflow: hidden;
             border: 1px solid var(--border);
+        }
+
+        /* Typing the barcode digits by hand */
+
+        .manual {
+            margin-top: 22px;
+        }
+
+        .manual-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .manual-row input {
+            flex: 1;
+            margin-bottom: 0;
+            font-family: "Courier New", monospace;
+            letter-spacing: 1px;
+        }
+
+        .manual-row .btn {
+            width: auto;
+            height: 56px;
+            padding: 0 20px;
+            margin-bottom: 0;
+        }
+
+        /* Cart */
+
+        .cart {
+            margin-top: 18px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--cultra-gold, #d9a441);
+            border-radius: 22px;
+            padding: 18px 18px 16px;
+        }
+
+        .cart-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .cart-title {
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .text-btn {
+            background: none;
+            border: none;
+            padding: 4px 0;
+            color: var(--cultra-gold-bright, #f0c35a);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .text-btn:disabled {
+            color: var(--text-2);
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .cart-empty {
+            color: var(--text-2);
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 8px 0 10px;
+        }
+
+        .cart-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cart-line.just-added {
+            animation: added 0.9s ease-out;
+        }
+
+        @keyframes added {
+            from { background-color: rgba(240, 195, 90, 0.18); }
+            to { background-color: transparent; }
+        }
+
+        .cart-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cart-name {
+            font-weight: bold;
+            font-size: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cart-unit {
+            color: var(--text-2);
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .qty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty button {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background-color: var(--secondary);
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .qty button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .qty span {
+            min-width: 16px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .cart-line-total {
+            width: 70px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .cart-total span:last-child {
+            color: var(--cultra-gold-bright, #f0c35a);
+            font-size: 22px;
+        }
+
+        .cart-waiting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background-color: var(--secondary);
+            color: var(--text-2);
+            font-size: 14px;
+        }
+
+        .cart-waiting[hidden] {
+            display: none;
+        }
+
+        .test-link {
+            display: inline-block;
+            margin-top: 18px;
+            color: var(--text-2);
+            font-size: 14px;
+        }
+
+        .sheet-cart {
+            color: var(--cultra-gold-bright, #f0c35a);
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 12px;
+        }
+
+        .sheet-cart:empty {
+            display: none;
+        }
+
+        input[readonly] {
+            color: var(--text);
+            background-color: var(--secondary);
         }
 
         .status {
@@ -340,35 +539,60 @@
             background-color: var(--cultra-gold-bright, #f0c35a);
         }
     </style>
+    <script src="config.js"></script>
+    <script src="native_scanner.js"></script>
 </head>
 <body>
     <main class="page">
-        <a class="back" href="merchant_main_page.html" aria-label="Back to merchant page">←</a>
-        <h1>Scan customer code</h1>
+        <a class="back" href="merchant_main_page.html" aria-label="Biznes səhifəsinə qayıt">←</a>
+        <h1>Kassa</h1>
 
         <div id="setup">
             <div id="reader"></div>
-            <p id="status" class="status">Point the camera at the customer's payment QR.</p>
+            <p id="status" class="status">Məhsulları skan edib səbətə əlavə edin, sonra müştərinin ödəniş kodunu skan edin.</p>
+
+            <section class="cart" aria-label="Səbət">
+                <div class="cart-head">
+                    <span class="cart-title" id="cart-title">Səbət</span>
+                    <button class="text-btn" id="cart-clear" type="button">Təmizlə</button>
+                </div>
+                <div id="cart-items"></div>
+                <div class="cart-total"><span>Cəmi</span><span id="cart-total">₼0.00</span></div>
+                <div class="cart-waiting" id="cart-waiting" hidden>
+                    <span>Müştərinin təsdiqi gözlənilir…</span>
+                    <button class="text-btn" id="cart-stop-waiting" type="button">Sorğunu ləğv et</button>
+                </div>
+            </section>
+
+            <div class="manual">
+                <label for="manual-code">Və ya barkod nömrəsini yazın (məhsul və ya ödəniş kodu)</label>
+                <div class="manual-row">
+                    <input id="manual-code" inputmode="numeric" autocomplete="off" placeholder="4760180200374" maxlength="16" />
+                    <button class="btn" id="manual-btn" type="button">Əlavə et</button>
+                </div>
+            </div>
+
+            <a class="test-link" href="products.html" target="_blank" rel="noopener">Test məhsul barkodları ↗</a>
         </div>
     </main>
 
     <!-- Request sheet -->
     <div class="sheet-bg" id="sheet-bg">
         <div class="sheet">
-            <label for="amount-input">Amount to request (AZN)</label>
+            <p class="sheet-cart" id="sheet-cart"></p>
+            <label for="amount-input" id="amount-label">Tələb olunan məbləğ (AZN)</label>
             <input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal" />
-            <p class="sheet-sub">Into your merchant balance · the customer will be asked to approve it</p>
-            <button class="btn" id="confirm-btn">Send request</button>
-            <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+            <p class="sheet-sub">Biznes balansınıza · müştəridən təsdiq istəniləcək</p>
+            <button class="btn" id="confirm-btn">Sorğu göndər</button>
+            <button class="btn btn-secondary" id="cancel-btn">Ləğv et</button>
         </div>
     </div>
     <script>
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
-        const API = "http://127.0.0.1:8000";
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
         function money(n) {
@@ -389,16 +613,16 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Can't reach the server. Check that the backend is running." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
-                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+                return { error: 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>' };
             }
 
             if (!data.registered) {
                 window.location.href = "merchant_register.html";
-                return { error: "Redirecting..." };
+                return { error: "Yönləndirilir..." };
             }
 
             return { merchant: data.merchant };
@@ -417,32 +641,296 @@
             if (!status) return;
             status.className = "status" + (kind ? " " + kind : "");
             status.textContent = text;
+            // Phone app: also shown over the camera, with the cart so far
+            if (NativeScanner.isOpen()) NativeScanner.message(text + "\n" + cartSummary(), kind);
         }
 
+        // ---------- Cart ----------
+        // Products scanned at the till. Kept in sessionStorage so a page refresh doesn't lose it.
+        // Amounts are added up in qəpik (whole numbers) so 0.1 + 0.2 never turns into 0.30000000000000004.
+
+        const CART_KEY = "cultra_cart";
+        const RESCAN_DELAY = 2000;      // ms: one barcode held in front of the camera is added once
+        const lastSeen = {};            // code -> time it was last handled from the camera
+
+        const cartItemsEl = document.getElementById("cart-items");
+        const cartTotalEl = document.getElementById("cart-total");
+        const cartTitleEl = document.getElementById("cart-title");
+        const cartClearBtn = document.getElementById("cart-clear");
+        const cartWaitingEl = document.getElementById("cart-waiting");
+        const sheetCartEl = document.getElementById("sheet-cart");
+        const amountLabel = document.getElementById("amount-label");
+
+        let PRODUCTS = null;            // product list from the server: barcode -> { name, price }
+        let cart = [];                  // [{ code, name, price, qty }]
+        let cartRequestId = null;       // payment request currently charging this cart
+        let chargingCart = false;       // is the open sheet charging the cart (vs. a typed amount)?
+
+        function loadCart() {
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(CART_KEY));
+                if (saved && Array.isArray(saved.items)) {
+                    cart = saved.items;
+                    cartRequestId = saved.requestId || null;
+                }
+            } catch (error) {
+                cart = [];
+            }
+        }
+
+        function saveCart() {
+            try {
+                sessionStorage.setItem(CART_KEY, JSON.stringify({ items: cart, requestId: cartRequestId }));
+            } catch (error) {
+                // storage unavailable: the cart still works until the page is closed
+            }
+        }
+
+        function qepik(price) {
+            return Math.round(price * 100);
+        }
+
+        function cartTotal() {          // in qəpik
+            return cart.reduce(function (sum, line) { return sum + qepik(line.price) * line.qty; }, 0);
+        }
+
+        function cartCount() {
+            return cart.reduce(function (sum, line) { return sum + line.qty; }, 0);
+        }
+
+        function formatMoney(q) {
+            return "₼" + (q / 100).toFixed(2);
+        }
+
+        function cartSummary() {
+            const count = cartCount();
+            return count ? "Səbət: " + count + " məhsul · " + formatMoney(cartTotal()) : "Səbət boşdur";
+        }
+
+        function renderCart(highlightCode) {
+            const locked = cartRequestId !== null;
+            cartItemsEl.innerHTML = "";
+
+            if (cart.length === 0) {
+                cartItemsEl.appendChild(el("p", "cart-empty", "Hələ məhsul yoxdur. Əlavə etmək üçün məhsulun barkodunu skan edin."));
+            }
+
+            cart.forEach(function (line) {
+                const row = el("div", "cart-line" + (line.code === highlightCode ? " just-added" : ""));
+
+                const info = el("div", "cart-info");
+                info.append(el("div", "cart-name", line.name), el("div", "cart-unit", "1 ədəd: " + formatMoney(qepik(line.price))));
+
+                const qty = el("div", "qty");
+                const minus = el("button", null, "−");
+                minus.type = "button";
+                minus.setAttribute("aria-label", "Bir ədəd az: " + line.name);
+                minus.disabled = locked;
+                minus.addEventListener("click", function () { changeQty(line.code, -1); });
+                const plus = el("button", null, "+");
+                plus.type = "button";
+                plus.setAttribute("aria-label", "Bir ədəd çox: " + line.name);
+                plus.disabled = locked;
+                plus.addEventListener("click", function () { changeQty(line.code, 1); });
+                qty.append(minus, el("span", null, String(line.qty)), plus);
+
+                row.append(info, qty, el("div", "cart-line-total", formatMoney(qepik(line.price) * line.qty)));
+                cartItemsEl.appendChild(row);
+            });
+
+            const count = cartCount();
+            cartTitleEl.textContent = count ? "Səbət · " + count + " məhsul" : "Səbət";
+            cartTotalEl.textContent = formatMoney(cartTotal());
+            cartClearBtn.disabled = locked || cart.length === 0;
+            cartWaitingEl.hidden = !locked;
+        }
+
+        function changeQty(code, delta) {
+            if (cartRequestId) return;
+            const line = cart.find(function (l) { return l.code === code; });
+            if (!line) return;
+            line.qty += delta;
+            if (line.qty <= 0) cart = cart.filter(function (l) { return l !== line; });
+            saveCart();
+            renderCart();
+        }
+
+        function isValidEan13(code) {
+            if (!/^\d{13}$/.test(code)) return false;
+            let sum = 0;
+            for (let i = 0; i < 12; i++) sum += Number(code[i]) * (i % 2 ? 3 : 1);
+            return (10 - (sum % 10)) % 10 === Number(code[12]);
+        }
+
+        let audio = null;
+        function beep() {
+            // the short "beep" of a till scanner, plus a buzz on phones
+            try {
+                audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audio.createOscillator();
+                const gain = audio.createGain();
+                osc.frequency.value = 1800;
+                gain.gain.value = 0.06;
+                osc.connect(gain);
+                gain.connect(audio.destination);
+                osc.start();
+                osc.stop(audio.currentTime + 0.08);
+            } catch (error) {
+                // no sound available
+            }
+            if (navigator.vibrate) navigator.vibrate(40);
+        }
+
+        function addProduct(code) {
+            if (cartRequestId) {
+                setStatus("Bu səbət müştərinin təsdiqini gözləyir. Dəyişmək üçün “Sorğunu ləğv et” düyməsinə toxunun.", "error");
+                return;
+            }
+
+            if (!PRODUCTS) {
+                setStatus("Məhsul siyahısı hələ serverdən yüklənir. Bir azdan yenidən cəhd edin.", "error");
+                return;
+            }
+
+            const product = PRODUCTS[code];
+            if (!product) {
+                setStatus("Naməlum məhsul: " + code, "error");
+                return;
+            }
+
+            const line = cart.find(function (l) { return l.code === code; });
+            if (line) {
+                line.qty += 1;
+            } else {
+                cart.push({ code: code, name: product.name, price: product.price, qty: 1 });
+            }
+
+            saveCart();
+            renderCart(code);
+            setStatus("Əlavə olundu: " + product.name + " · " + formatMoney(qepik(product.price)), "ok");
+            beep();
+        }
+
+        cartClearBtn.addEventListener("click", function () {
+            if (cartRequestId) return;
+            cart = [];
+            saveCart();
+            renderCart();
+            setStatus("Səbət təmizləndi.", null);
+        });
+
+        // Withdraw the request (it disappears from the customer's phone) and unlock the cart
+        const stopWaitingBtn = document.getElementById("cart-stop-waiting");
+        stopWaitingBtn.addEventListener("click", async function () {
+            const id = cartRequestId;
+            if (!id) return;
+
+            stopWaitingBtn.disabled = true;
+            let reason = null;
+            try {
+                const response = await fetch(API + "/cancel-payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ payment_id: id, user_id: user_id })
+                });
+                const data = await response.json();
+                if (data.status !== "success") reason = data.reason || "naməlum xəta";
+            } catch (error) {
+                reason = "serverə qoşulmaq olmur";
+            }
+            stopWaitingBtn.disabled = false;
+
+            if (reason) {
+                // Usually: the customer answered a moment ago. The status check picks that up within 3s.
+                setStatus("Ləğv etmək alınmadı: " + reason, "error");
+                return;
+            }
+
+            cartRequestId = null;
+            saveCart();
+            renderCart();
+            setStatus("Sorğu ləğv edildi. Səbəti yenidən dəyişmək olar.", null);
+        });
+
+        // ---------- What was scanned? ----------
+
+        // Called by the camera scanners
         function onScanSuccess(decodedText) {
+            handleCode(decodedText, false);
+        }
 
-            if (pendingQr) return; // a scan is already being confirmed
+        function handleCode(text, typed) {
+            if (pendingQr) return;                   // a payment is already being confirmed
 
-            const parts = decodedText.split(":");
+            const code = text.trim();
+            const digits = code.replace(/\s/g, "");
 
-            if (parts[0] === "PAY_QR" && parts.length === 3) {
-                // A customer's "my payment QR": we choose the amount, they approve it
-                pendingQr = decodedText;
-                amountInput.value = "";
-                sheetBg.classList.add("on");
-                setTimeout(function () { amountInput.focus(); }, 50);
+            // The camera reads the same code several times a second: handle it once, then pause
+            if (!typed) {
+                const now = Date.now();
+                if (lastSeen[digits] && now - lastSeen[digits] < RESCAN_DELAY) return;
+                lastSeen[digits] = now;
+            }
+
+            const parts = code.split(":");
+
+            if (isValidEan13(digits)) {
+                addProduct(digits);                  // a product barcode (13 digits)
+
+            } else if (/^\d{16}$/.test(digits)) {
+                openCharge(digits);                  // the customer's payment barcode (16 digits)
+
+            } else if (parts[0] === "PAY_QR" && parts.length === 3) {
+                openCharge(code);                    // the customer's payment QR
 
             } else if (parts[0] === "PAY") {
-                setStatus("That's a receive code. Merchants can only scan customer payment codes.", "error");
+                setStatus("Bu, qəbul kodudur. Kassada yalnız müştərinin ödəniş kodunu skan etmək olar.", "error");
+
+            } else if (/^\d{13}$/.test(digits)) {
+                setStatus("Məhsulun barkodu düzgün oxunmadı. Yenidən cəhd edin.", "error");
 
             } else {
-                setStatus("That doesn't look like a Cultra payment code.", "error");
+                setStatus("Bu, nə məhsul barkoduna, nə də Cultra ödəniş koduna oxşamır.", "error");
             }
+        }
+
+        // ---------- Charging the customer ----------
+
+        function openCharge(customerCode) {
+            if (cartRequestId) {
+                setStatus("Bu səbət hələ müştərinin təsdiqini gözləyir. Əvvəlcə “Sorğunu ləğv et” düyməsinə toxunun.", "error");
+                return;
+            }
+
+            pendingQr = customerCode;
+            const total = cartTotal();
+            chargingCart = total > 0;
+
+            if (chargingCart) {
+                // The cart decides the amount
+                amountInput.value = (total / 100).toFixed(2);
+                amountInput.readOnly = true;
+                amountLabel.textContent = "Ödəniləcək məbləğ (AZN)";
+                const count = cartCount();
+                sheetCartEl.textContent = "Səbətin cəmi · " + count + " məhsul";
+            } else {
+                // Empty cart: type any amount, like before
+                amountInput.value = "";
+                amountInput.readOnly = false;
+                amountLabel.textContent = "Tələb olunan məbləğ (AZN)";
+                sheetCartEl.textContent = "";
+                setTimeout(function () { amountInput.focus(); }, 50);
+            }
+
+            sheetBg.classList.add("on");
         }
 
         function closeSheet() {
             sheetBg.classList.remove("on");
+            // Don't reopen straight away while the customer's code is still in front of the camera
+            if (pendingQr) lastSeen[pendingQr.replace(/\s/g, "")] = Date.now();
             pendingQr = null;
+            chargingCart = false;
         }
 
         function watchRequestOutcome(payment_id) {
@@ -455,10 +943,23 @@
 
                     if (data.payment_status === "accepted") {
                         clearInterval(poll);
-                        setStatus("Accepted — ₼" + data.amount.toFixed(2) + " added to your merchant balance.", "ok");
+                        if (payment_id === cartRequestId) {
+                            cart = [];                        // paid: next customer
+                            cartRequestId = null;
+                            saveCart();
+                            renderCart();
+                        }
+                        setStatus("Ödənildi — ₼" + data.amount.toFixed(2) + " biznes balansınıza əlavə olundu.", "ok");
+                    } else if (data.payment_status === "cancelled") {
+                        clearInterval(poll);              // we withdrew it ourselves: nothing more to do
                     } else if (data.payment_status === "declined") {
                         clearInterval(poll);
-                        setStatus("The customer declined the request.", "error");
+                        if (payment_id === cartRequestId) {
+                            cartRequestId = null;             // keep the cart so it can be charged again
+                            saveCart();
+                            renderCart();
+                        }
+                        setStatus("Müştəri sorğunu rədd etdi. Səbət yerində qalır.", "error");
                     }
                     // still "pending": keep waiting silently
                 } catch (error) {
@@ -469,12 +970,28 @@
 
         cancelBtn.addEventListener("click", closeSheet);
 
+        // Android back button with the sheet open: close the sheet, stay on this page
+        onBackButton(function () {
+            if (!sheetBg.classList.contains("on")) return false;
+            closeSheet();
+            return true;
+        });
+
         confirmBtn.addEventListener("click", async function () {
-            const amount = parseFloat(amountInput.value);
+            const isCart = chargingCart;
+            const amount = isCart ? cartTotal() / 100 : parseFloat(amountInput.value);
 
             if (!amount || amount <= 0) {
                 amountInput.focus();
                 return;
+            }
+
+            const body = { qr_data: pendingQr, user_id: user_id, amount: amount };
+            if (isCart) {
+                // The server prices these itself and checks the amount; the customer sees the list when approving
+                body.items = cart.map(function (line) {
+                    return { barcode: line.code, qty: line.qty };
+                });
             }
 
             confirmBtn.disabled = true;
@@ -483,24 +1000,211 @@
                 const response = await fetch(API + "/payqr", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ qr_data: pendingQr, user_id: user_id, amount: amount })
+                    body: JSON.stringify(body)
                 });
                 const data = await response.json();
 
                 if (data.status === "pending") {
-                    setStatus("Request sent. Waiting for the customer to approve it.", "ok");
+                    if (isCart) {
+                        cartRequestId = data.payment_id;     // lock the cart until the customer answers
+                        saveCart();
+                        renderCart();
+                    }
+                    setStatus("₼" + amount.toFixed(2) + " üçün sorğu göndərildi. Müştərinin təsdiqi gözlənilir.", "ok");
                     closeSheet();
                     watchRequestOutcome(data.payment_id);
                 } else {
-                    setStatus("Failed: " + (data.reason || "unknown error"), "error");
+                    setStatus(data.reason || "Sorğu göndərilmədi", "error");
                     closeSheet();
                 }
             } catch (error) {
-                setStatus("Can't reach the server. Check that the backend is running.", "error");
+                setStatus(SERVER_ERROR, "error");
                 closeSheet();
             }
 
             confirmBtn.disabled = false;
+        });
+
+        // Product names and prices come from the server (GET /products)
+        async function loadProducts() {
+            try {
+                const response = await fetch(API + "/products");
+                const data = await response.json();
+                if (data.status === "success") {
+                    PRODUCTS = data.products;
+                    refreshCartPrices();
+                    return;
+                }
+            } catch (error) {
+                // server not reachable yet
+            }
+            setTimeout(loadProducts, 5000);       // keep trying until the server answers
+        }
+
+        // A cart saved before a price change gets today's prices (the server checks them anyway)
+        function refreshCartPrices() {
+            if (cartRequestId) return;
+            let changed = false;
+            cart.forEach(function (line) {
+                const product = PRODUCTS[line.code];
+                if (product && (product.price !== line.price || product.name !== line.name)) {
+                    line.price = product.price;
+                    line.name = product.name;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                saveCart();
+                renderCart();
+            }
+        }
+
+        loadCart();
+        renderCart();
+        loadProducts();
+        if (cartRequestId) watchRequestOutcome(cartRequestId);   // page was refreshed while waiting
+
+        // ---------- Barcodes at full camera resolution ----------
+        // html5-qrcode shrinks every camera frame to the size of the box on screen (~370px wide)
+        // before decoding. Fine for QR codes, but a barcode's thin bars get lost. So barcodes are
+        // read separately: grab the middle band of the frame at the camera's real resolution and
+        // decode that with html5-qrcode's scanFile(), which works at the image's natural size.
+
+        // The barcode decoder can't find a barcode that has anything dark to its left on the same line
+        // (and a barcode held up to a camera always does: the app's dark screen, the room, the edge of
+        // a tilted card). So on every line, everything outside the bright part (the white card the
+        // barcode sits on) is painted the card's own white. To the decoder it then looks like a barcode
+        // printed on plain paper, which it reads fine. Line by line, so a tilted card works too.
+        function whitenAroundCode(ctx, w, h) {
+            const image = ctx.getImageData(0, 0, w, h);
+            const d = image.data;
+            const light = new Uint8Array(w * h);
+            let lowest = 255, highest = 0;
+
+            for (let p = 0, i = 0; p < w * h; p++, i += 4) {
+                const v = (d[i] * 3 + d[i + 1] * 6 + d[i + 2]) / 10;
+                light[p] = v;
+            }
+
+            // How dark is the background and how bright is the card? Use each column's brightest
+            // pixel, so the black bars and single noisy pixels don't skew it.
+            for (let x = 0; x < w; x++) {
+                let max = 0;
+                for (let y = 0; y < h; y += 2) {
+                    const v = light[y * w + x];
+                    if (v > max) max = v;
+                }
+                if (max < lowest) lowest = max;
+                if (max > highest) highest = max;
+            }
+            if (highest - lowest < 40) return;               // nothing stands out: leave the frame alone
+
+            const bright = lowest + 0.6 * (highest - lowest);
+            const paper = Math.round((bright + highest) / 2);  // the card's own white, not pure 255
+
+            for (let y = 0; y < h; y++) {
+                const row = y * w;
+                let left = -1, right = -1;
+                for (let x = 0; x < w; x++) {
+                    if (light[row + x] >= bright) { left = x; break; }
+                }
+                if (left < 0) continue;                       // no card on this line
+                for (let x = w - 1; x >= left; x--) {
+                    if (light[row + x] >= bright) { right = x; break; }
+                }
+                for (let x = 0; x < left; x++) {
+                    const i = (row + x) * 4;
+                    d[i] = d[i + 1] = d[i + 2] = paper;
+                }
+                for (let x = right + 1; x < w; x++) {
+                    const i = (row + x) * 4;
+                    d[i] = d[i + 1] = d[i + 2] = paper;
+                }
+            }
+            ctx.putImageData(image, 0, 0);
+        }
+
+        function startBarcodeReader(scanner) {
+            const holder = document.createElement("div");
+            holder.id = "barcode-decoder";
+            holder.style.display = "none";
+            document.body.appendChild(holder);
+
+            const decoder = new Html5Qrcode("barcode-decoder", {
+                // CODE_128 = customer payment barcode, EAN_13 = product barcodes
+                formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.EAN_13],
+                verbose: false
+            });
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d", { willReadFrequently: true });
+            // Horizontal strips of the camera image, checked in turn, so the barcode doesn't have to be
+            // held exactly in the middle (the decoder only looks at lines near the middle of each image)
+            const strips = [[0.25, 0.75], [0.0, 0.45], [0.55, 1.0]];
+            let stripIndex = 0;
+            let busy = false;
+            let askedForHd = false;
+
+            setInterval(async function () {
+                if (scanner.getState() !== Html5QrcodeScannerState.SCANNING) {
+                    askedForHd = false;          // camera stopped: ask again when it restarts
+                    return;
+                }
+
+                // Laptop/phone cameras start at 640x480 by default; ask for HD so bars get more pixels
+                if (!askedForHd) {
+                    askedForHd = true;
+                    scanner.applyVideoConstraints({ width: { ideal: 1920 }, height: { ideal: 1080 } })
+                        .catch(function () { /* camera can't do HD: keep what it has */ });
+                }
+
+                const video = document.querySelector("#reader video");
+                if (busy || pendingQr || !video || !video.videoWidth) return;
+
+                busy = true;
+                try {
+                    const w = video.videoWidth;
+                    const h = video.videoHeight;
+                    const strip = strips[stripIndex];
+                    stripIndex = (stripIndex + 1) % strips.length;
+                    const top = Math.round(h * strip[0]);
+                    const stripHeight = Math.round(h * (strip[1] - strip[0]));
+
+                    canvas.width = w;
+                    canvas.height = stripHeight;
+                    context.drawImage(video, 0, top, w, stripHeight, 0, 0, w, stripHeight);
+                    whitenAroundCode(context, w, stripHeight);
+
+                    const blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/jpeg", 0.95); });
+                    const text = await decoder.scanFile(new File([blob], "frame.jpg", { type: "image/jpeg" }), false);
+                    if (!pendingQr) onScanSuccess(text);
+                } catch (error) {
+                    // no barcode in this frame
+                }
+                busy = false;
+            }, 250);
+        }
+
+        // Manual entry: the cashier types the digits under a product barcode (13) or the customer's barcode (16)
+        const manualInput = document.getElementById("manual-code");
+
+        manualInput.addEventListener("input", function () {
+            manualInput.value = manualInput.value.replace(/\D/g, "").slice(0, 16);   // digits only
+        });
+
+        function useManualCode() {
+            const d = manualInput.value.replace(/\D/g, "");
+            if (d.length !== 13 && d.length !== 16) {
+                setStatus("Məhsul barkodu 13, ödəniş kodu 16 rəqəmdən ibarətdir.", "error");
+                manualInput.focus();
+                return;
+            }
+            manualInput.value = "";
+            handleCode(d, true);
+        }
+
+        document.getElementById("manual-btn").addEventListener("click", useManualCode);
+        manualInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") useManualCode();
         });
 
         async function init() {
@@ -511,8 +1215,71 @@
                 return;
             }
 
-            const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 500 });
+            if (NativeScanner.available) {
+                // Phone app: the phone's own scanner (native_scanner.js). It stays open while products
+                // are scanned one after another, and closes by itself for the customer's code.
+                const openButton = document.createElement("button");
+                openButton.className = "btn";
+                openButton.id = "open-camera";
+                openButton.type = "button";
+                openButton.textContent = "📷 Skan et";
+                openButton.addEventListener("click", openNativeScanner);
+                const reader = document.getElementById("reader");
+                reader.hidden = true;
+                reader.before(openButton);
+
+                // The test barcodes open in the app itself (there are no tabs)
+                document.querySelector(".test-link").removeAttribute("target");
+                return;
+            }
+
+            useWebScanner();
+        }
+
+        // Browser: html5-qrcode in the page. The live scanner handles QR codes (no qrbox: the whole
+        // camera view is scanned, no frame drawn), startBarcodeReader the barcodes.
+        function useWebScanner() {
+            const scanner = new Html5QrcodeScanner("reader", {
+                fps: 10,
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+            });
             scanner.render(onScanSuccess);
+            startBarcodeReader(scanner);
+        }
+
+        async function openNativeScanner() {
+            if (pendingQr || NativeScanner.isOpen()) return;
+            try {
+                await NativeScanner.open({
+                    formats: ["EAN_13", "CODE_128", "QR_CODE"],   // products, the customer's barcode, the customer's QR
+                    wide: true,
+                    accent: "#d9a441",
+                    hint: "Məhsulun barkodu və ya müştərinin ödəniş kodu",
+                    doneLabel: "Səbətə bax",
+                    onCode: function (text) {
+                        // "true": no extra wait here, native_scanner.js already ignores a code that stays in view
+                        handleCode(text, true);
+                        if (pendingQr) NativeScanner.close();      // the customer's code: the charge sheet is open
+                    }
+                });
+                NativeScanner.message(cartSummary());
+            } catch (error) {
+                setStatus(error.message, "error");
+                if (error.permissionDenied) {
+                    const settings = document.createElement("button");
+                    settings.type = "button";
+                    settings.className = "text-btn";
+                    settings.textContent = "Parametrləri aç";
+                    settings.addEventListener("click", NativeScanner.openSettings);
+                    document.getElementById("status").append(" ", settings);
+                } else if (document.getElementById("open-camera")) {
+                    // The phone's scanner didn't start: use the browser one inside the app instead
+                    document.getElementById("open-camera").remove();
+                    document.getElementById("reader").hidden = false;
+                    useWebScanner();
+                }
+            }
         }
 
         init();

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 <head>
     <meta name="color-scheme" content="dark" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Become a merchant - Cultra</title>
+    <title>Biznes hesabı aç - Cultra</title>
     <style>
         :root {
             color-scheme: dark;
@@ -339,22 +339,22 @@
             background-color: var(--cultra-gold-bright, #f0c35a);
         }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <main class="page">
-        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
-        <h1>Become a merchant</h1>
-        <p class="lead">Accept payments from customers straight into a merchant balance you can withdraw to your bank. Pick your category and the name customers will see.</p>
+        <a class="back" href="main_menu.html" aria-label="Ana səhifəyə qayıt">←</a>
+        <h1>Biznes hesabı aç</h1>
+        <p class="lead">Müştərilərdən ödənişləri birbaşa biznes balansına qəbul edin və bank hesabınıza köçürün. Kateqoriyanızı və müştərilərin görəcəyi adı seçin.</p>
 
         <div id="setup"></div>
     </main>
     <script>
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
-        const API = "http://127.0.0.1:8000";
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
         function money(n) {
@@ -375,16 +375,16 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Can't reach the server. Check that the backend is running." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
-                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+                return { error: 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>' };
             }
 
             if (!data.registered) {
                 window.location.href = "merchant_register.html";
-                return { error: "Redirecting..." };
+                return { error: "Yönləndirilir..." };
             }
 
             return { merchant: data.merchant };
@@ -406,12 +406,12 @@
                 info = results[0];
                 cats = results[1];
             } catch (error) {
-                empty("Can't reach the server. Check that the backend is running.");
+                empty(SERVER_ERROR);
                 return;
             }
 
             if (info.status !== "success" || cats.status !== "success") {
-                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                empty('Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>');
                 return;
             }
 
@@ -424,7 +424,7 @@
             let chosen = null;
             const rows = {};
 
-            const catLabel = el("label", null, "Category");
+            const catLabel = el("label", null, "Kateqoriya");
             const list = el("div", "cats");
 
             Object.keys(cats.categories).forEach(function (id) {
@@ -444,25 +444,25 @@
                 list.appendChild(row);
             });
 
-            const nameLabel = el("label", null, "Business name");
+            const nameLabel = el("label", null, "Biznesin adı");
             nameLabel.setAttribute("for", "business-name");
 
             const nameInput = document.createElement("input");
             nameInput.id = "business-name";
             nameInput.maxLength = 40;
-            nameInput.placeholder = "e.g. Pizza Place";
+            nameInput.placeholder = "məs. Nanə Kafe";
             nameInput.autocomplete = "off";
 
             const message = el("p", "message");
             message.setAttribute("role", "status");
 
-            const submit = el("button", "btn", "Create merchant account");
+            const submit = el("button", "btn", "Biznes hesabı yarat");
 
             submit.addEventListener("click", async function () {
                 const name = nameInput.value.trim();
 
-                if (!chosen) { message.textContent = "Pick a category."; return; }
-                if (name.length < 2) { message.textContent = "Enter your business name (at least 2 characters)."; return; }
+                if (!chosen) { message.textContent = "Kateqoriya seçin."; return; }
+                if (name.length < 2) { message.textContent = "Biznesin adını yazın (ən azı 2 simvol)."; return; }
 
                 submit.disabled = true;
                 message.textContent = "";
@@ -479,9 +479,9 @@
                         window.location.href = "merchant_main_page.html";
                         return;
                     }
-                    message.textContent = data.reason || "Something went wrong.";
+                    message.textContent = data.reason || "Xəta baş verdi.";
                 } catch (error) {
-                    message.textContent = "Can't reach the server. Check that the backend is running.";
+                    message.textContent = SERVER_ERROR;
                 }
                 submit.disabled = false;
             });

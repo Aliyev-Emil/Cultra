@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 <head>
     <meta name="color-scheme" content="dark" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Receive QR - Cultra</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Qəbul QR - Biznes - Cultra</title>
+    <script src="vendor/qrcode.min.js"></script>
     <style>
         :root {
             color-scheme: dark;
@@ -274,6 +274,23 @@
             margin-top: 18px;
         }
 
+        /* "Payment arrived" line under the code */
+
+        .received {
+            margin: 16px 0 0;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background-color: rgba(63, 192, 141, 0.12);
+            border: 1px solid rgba(63, 192, 141, 0.35);
+            color: #3fc08d;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .received[hidden] {
+            display: none;
+        }
+
         /* category picker */
 
         .cats {
@@ -340,21 +357,22 @@
             background-color: var(--cultra-gold-bright, #f0c35a);
         }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <main class="page">
-        <a class="back" href="merchant_main_page.html" aria-label="Back to merchant page">←</a>
-        <h1>Receive QR</h1>
-        <p class="lead" id="lead">Enter the amount. The customer scans the code and pays it straight into your merchant balance.</p>
+        <a class="back" href="merchant_main_page.html" aria-label="Biznes səhifəsinə qayıt">←</a>
+        <h1>Qəbul QR</h1>
+        <p class="lead" id="lead">Məbləği yazın. Müştəri kodu skan edir və pul birbaşa biznes balansınıza gəlir.</p>
 
         <div id="setup">
             <div class="row">
                 <div>
-                    <label for="amount-input">Amount</label>
+                    <label for="amount-input">Məbləğ</label>
                     <input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal" />
                 </div>
                 <div>
-                    <label for="currency-select">Currency</label>
+                    <label for="currency-select">Valyuta</label>
                     <select id="currency-select">
                         <option value="AZN">AZN</option>
                         <option value="USD">USD</option>
@@ -364,17 +382,17 @@
 
             <div class="qr-card">
                 <div id="qrcode"></div>
-                <p class="qr-caption" id="qr-caption">Enter an amount to generate the code.</p>
+                <p class="qr-caption" id="qr-caption">Kod yaratmaq üçün məbləği daxil edin.</p>
             </div>
+            <p class="received" id="received" role="status" hidden></p>
         </div>
     </main>
     <script>
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
-        const API = "http://127.0.0.1:8000";
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
         function money(n) {
@@ -395,16 +413,16 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Can't reach the server. Check that the backend is running." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
-                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+                return { error: 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>' };
             }
 
             if (!data.registered) {
                 window.location.href = "merchant_register.html";
-                return { error: "Redirecting..." };
+                return { error: "Yönləndirilir..." };
             }
 
             return { merchant: data.merchant };
@@ -422,7 +440,7 @@
             box.innerHTML = "";
 
             if (!amount || amount <= 0) {
-                caption.textContent = "Enter an amount to generate the code.";
+                caption.textContent = "Kod yaratmaq üçün məbləği daxil edin.";
                 return;
             }
 
@@ -436,7 +454,7 @@
                 colorLight: "#ffffff"
             });
 
-            caption.textContent = "Customers pay " + (currency === "AZN" ? "₼" : currency + " ") + amountText + " to " + businessName;
+            caption.textContent = businessName + " · " + (currency === "AZN" ? "₼" : currency + " ") + amountText;
         }
 
         async function init() {
@@ -451,6 +469,40 @@
 
             document.getElementById("amount-input").addEventListener("input", renderQr);
             document.getElementById("currency-select").addEventListener("change", renderQr);
+
+            watchIncoming();
+            setInterval(watchIncoming, 3000);
+        }
+
+        // ---------- Money arriving ----------
+        // The customer's phone does the paying, so this page watches the merchant history
+        // and says when a payment lands (the same code can then be paid again by the next customer).
+        let newestSeen = null;      // id of the newest history entry already known (null = not looked yet)
+
+        async function watchIncoming() {
+            let data;
+            try {
+                const response = await fetch(API + "/merchant/transactions/" + user_id + "?limit=1");
+                data = await response.json();
+            } catch (error) {
+                return;             // try again on the next tick
+            }
+            if (data.status !== "success") return;
+
+            const newest = data.transactions[0];
+            const id = newest ? newest.id : "";
+            if (newestSeen === null) {
+                newestSeen = id;    // first look: only remember what's already there
+                return;
+            }
+            if (id === newestSeen) return;
+            newestSeen = id;
+
+            if (newest.direction === "received") {
+                const box = document.getElementById("received");
+                box.textContent = "✓ ₼" + money(newest.amount) + " ödənildi: " + newest.other_username;
+                box.hidden = false;
+            }
         }
 
         init();

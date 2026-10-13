@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
   <meta charset="UTF-8" />
@@ -134,19 +134,20 @@
       text-decoration: none;
     }
   </style>
+    <script src="config.js"></script>
 </head>
 
 <body>
   <main class="page">
 
-    <a class="back" href="先.html" aria-label="Back to welcome page">←</a>
+    <a class="back" href="index.html" aria-label="Geri">←</a>
 
     <h1>Hesab yarat</h1>
     <p class="lead">İstifadəçi adınızı və parolunuzu daxil edin</p>
 
     <form id="register-form">
       <label for="username">İstifadəçi adı</label>
-      <input id="username" placeholder="İstifadəçi adı seçin" autocomplete="username" required />
+      <input id="username" placeholder="3-20 simvol" autocomplete="username" required />
 
       <label for="password">Parol</label>
       <input id="password" type="password" placeholder="Minimum 8 simvol" autocomplete="new-password" minlength="8" required />
@@ -181,7 +182,7 @@
 
       try {
         // Send the data to FastAPI
-        const response = await fetch("http://127.0.0.1:8000/register", {
+        const response = await fetch(API + "/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -197,17 +198,17 @@
 
         if (data.status === "success") {
           // Save the user so the other pages know who is logged in
-          sessionStorage.setItem("user_id", data.user_id);
+          saveUserId(data.user_id);         // remembered: the app stays logged in
 
-          show("Account created", true);
-          window.location.href = "main_menu.html";
+          show("Hesab yaradıldı", true);
+          window.location.replace("main_menu.html");   // "back" won't return to this form
         } else {
-          show("Registration failed: " + data.reason, false);
+          show(data.reason || "Qeydiyyat alınmadı", false);
           submit.disabled = false;
         }
 
       } catch (error) {
-        show("Can't reach the server. Check that the backend is running.", false);
+        show(SERVER_ERROR, false);
         submit.disabled = false;
       }
     });

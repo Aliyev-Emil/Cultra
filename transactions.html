@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tarixçə - Cultra</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header */
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #71809f;
+            margin-top: 5px;
+        }
+
+        .notification {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Balance */
+
+        .balance-box {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 28px;
+            padding: 27px;
+            margin-top: 25px;
+        }
+
+        .balance-title {
+            color: #8491ad;
+            margin: 0;
+        }
+
+        .balance {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .balance-decimal {
+            color: #8795b5;
+            font-size: 23px;
+        }
+
+        .balance-subtitle {
+            color: #596987;
+            margin: 0;
+        }
+
+        .bank-total-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-top: 12px;
+        }
+
+        .bank-total-label {
+            color: #8491ad;
+            font-size: 14px;
+        }
+
+        .bank-total-amount {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* Main buttons */
+
+        .main-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .main-button {
+            flex: 1;
+            height: 82px;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 18px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .button-icon {
+            display: block;
+            color: #f79432;
+            font-size: 25px;
+            margin-bottom: 8px;
+        }
+
+        /* Section titles */
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .manage {
+            color: #f79432;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        /* Empty state */
+
+        .empty {
+            color: #71809f;
+            font-size: 14px;
+            padding: 10px 5px 4px;
+        }
+
+        /* Bank cards */
+
+        .bank {
+            display: flex;
+            align-items: center;
+            padding: 12px 5px;
+            border-bottom: 1px solid #222a3a;
+        }
+
+        .bank-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 13px;
+            background-color: #20283a;
+            font-size: 18px;
+        }
+
+        .bank-info {
+            flex: 1;
+        }
+
+        .bank-name {
+            font-weight: bold;
+        }
+
+        .bank-status {
+            color: #61708d;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .bank-balance {
+            font-weight: bold;
+        }
+
+        /* Başqa bank qoş */
+
+        .connect {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            padding: 14px 5px;
+            border-bottom: 1px solid #222a3a;
+            color: #f79432;
+            font-weight: bold;
+            background: none;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .plus {
+            width: 44px;
+            height: 44px;
+            border: 1px dashed #596780;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #71809d;
+            margin-right: 13px;
+        }
+
+        /* Əməliyyatlar */
+
+        .purchase {
+            display: flex;
+            align-items: center;
+            padding: 14px 5px;
+            border-bottom: 1px solid #222a3a;
+        }
+
+        .purchase-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: #20283a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 13px;
+            font-size: 20px;
+        }
+
+        .purchase-icon.received {
+            color: #3fc08d;
+        }
+
+        .purchase-icon.sent {
+            color: #ff7a6b;
+        }
+
+        .purchase-info {
+            flex: 1;
+        }
+
+        .purchase-name {
+            font-weight: bold;
+        }
+
+        .purchase-date {
+            color: #61708d;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .purchase-amount {
+            font-weight: bold;
+        }
+
+        .purchase-amount.received {
+            color: #3fc08d;
+        }
+
+        /* Right column: amount, with the cashback (if any) underneath */
+        .purchase-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .purchase-cashback {
+            color: #3fc08d;
+            background-color: rgba(63, 192, 141, 0.12);
+            border-radius: 8px;
+            padding: 2px 7px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Bottom navigation */
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background-color: #171e30;
+            border-top: 1px solid #30394c;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            color: #687590;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .nav-active {
+            color: #f79432;
+        }
+
+        /* Merchant button in the header */
+
+        .header-merchant {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-merchant-label {
+            color: #8491ad;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+    <style>
+        /* history page extras */
+        body {
+            padding-bottom: 30px;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .purchase.has-items {
+            cursor: pointer;
+        }
+
+        .items-toggle {
+            color: #f79432;
+            font-weight: bold;
+        }
+
+        /* the products bought, shown when the row is tapped */
+        .purchase-items {
+            display: none;
+            margin: -4px 0 10px 57px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background-color: #182033;
+            font-size: 14px;
+        }
+
+        .purchase-xp {
+            color: #f79432;
+            background-color: rgba(247, 148, 50, 0.12);
+            border-radius: 8px;
+            padding: 2px 7px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .purchase-items.open {
+            display: block;
+        }
+
+        .purchase-items div {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 3px 0;
+        }
+
+        .purchase-items span:last-child {
+            color: #a9b3c9;
+            white-space: nowrap;
+        }
+    </style>
+    <script src="config.js"></script>
+</head>
+
+<body>
+
+    <div class="page-head">
+        <a class="notification back" href="main_menu.html" aria-label="Ana səhifəyə qayıt">←</a>
+        <h1 class="page-title">Bütün əməliyyatlar</h1>
+    </div>
+
+    <div id="activity-list">
+        <p class="empty">Yüklənir...</p>
+    </div>
+
+    <script>
+        const user_id = getUserId();
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.replace("index.html");
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // "13 okt, 17:47". Written out by hand: not every browser has Azerbaijani month names built in
+        const AZ_MONTHS = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek"];
+
+        function formatWhen(iso) {
+            const d = new Date(iso);
+            return d.getDate() + " " + AZ_MONTHS[d.getMonth()] + ", " +
+                String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+        }
+
+        function el(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) node.textContent = text;   // textContent: names are user-typed, never HTML
+            return node;
+        }
+
+        function renderRow(list, tx) {
+            const sent = tx.direction === "sent";
+            const topup = tx.direction === "topup";
+            const items = Array.isArray(tx.items) ? tx.items : [];
+
+            let name, amountText, kind, icon;
+            if (topup) {
+                name = "Tətbiq balansına əlavə edildi";
+                amountText = "+₼" + money(tx.amount);
+                kind = "received";
+                icon = "↓";
+            } else {
+                name = (sent ? "Göndərildi: " : "Qəbul edildi: ") + tx.other_username;
+                amountText = (sent ? "-" : "+") + "₼" + money(tx.amount);
+                kind = tx.direction;
+                icon = sent ? "↑" : "↓";
+            }
+
+            const row = el("div", "purchase" + (items.length ? " has-items" : ""));
+            const info = el("div", "purchase-info");
+            const date = el("div", "purchase-date", formatWhen(tx.at));
+            info.append(el("div", "purchase-name", name), date);
+
+            const right = el("div", "purchase-right");
+            right.appendChild(el("div", "purchase-amount " + kind, amountText));
+            if (tx.cashback > 0) right.appendChild(el("div", "purchase-cashback", "+₼" + money(tx.cashback) + " keşbek"));
+            if (tx.xp > 0) right.appendChild(el("div", "purchase-xp", "+" + tx.xp + " XP"));
+
+            row.append(el("div", "purchase-icon " + kind, icon), info, right);
+            list.appendChild(row);
+
+            // Checkout payments: tap to see what was bought
+            if (items.length) {
+                const count = items.reduce(function (sum, item) { return sum + item.qty; }, 0);
+                date.append(" · ", el("span", "items-toggle", count + " məhsul ▾"));
+
+                const box = el("div", "purchase-items");
+                items.forEach(function (item) {
+                    const line = el("div");
+                    line.append(
+                        el("span", null, (item.qty > 1 ? item.qty + " × " : "") + item.name),
+                        el("span", null, "₼" + money(Math.round(item.price * 100) * item.qty / 100))
+                    );
+                    box.appendChild(line);
+                });
+                list.appendChild(box);
+
+                row.addEventListener("click", function () {
+                    box.classList.toggle("open");
+                });
+            }
+        }
+
+        async function load() {
+            const list = document.getElementById("activity-list");
+
+            let data;
+            try {
+                // limit=0 -> everything
+                const response = await fetch(API + "/transactions/" + user_id + "?limit=0");
+                data = await response.json();
+            } catch (error) {
+                list.innerHTML = '<p class="empty">' + SERVER_ERROR + '</p>';
+                return;
+            }
+
+            if (data.status !== "success") {
+                list.innerHTML = '<p class="empty">Sessiyanızın müddəti bitib. <a href="login.html" style="color:#f79432;font-weight:bold;">Yenidən daxil olun</a></p>';
+                return;
+            }
+
+            list.innerHTML = "";
+
+            if (data.transactions.length === 0) {
+                list.appendChild(el("p", "empty", "Hələ heç bir əməliyyat yoxdur."));
+                return;
+            }
+
+            data.transactions.forEach(function (tx) {
+                renderRow(list, tx);
+            });
+        }
+
+        // A payment approved from the popup shows up straight away
+        window.addEventListener("cultra:payment-resolved", load);
+
+        load();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>
