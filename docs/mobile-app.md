@@ -29,11 +29,12 @@ GitHub or into the code: it only goes into Render.
    - Name: `cultra`
    - Database password: press **Generate a password** (letters and digits only, which keeps the
      connection string simple). Save it somewhere private on your laptop.
-   - Region: **Central EU (Frankfurt)**, the same city as the server.
+   - Region: **Southeast Asia (Singapore)**, the same city as the server (Render has no Tokyo region,
+     and the server and database talk on every request, so they should sit together).
 2. When the project is ready, press **Connect** at the top, choose **Session pooler** and copy the
    URI. It looks like:
    ```
-   postgresql://postgres.abcdefghijklmnop:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+   postgresql://postgres.abcdefghijklmnop:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
    ```
 3. Replace `[YOUR-PASSWORD]`, square brackets included, with the database password.
 
@@ -53,7 +54,7 @@ Merge the pull request with the app on GitHub (**Merge pull request**). Render b
 3. It asks for **DATABASE_URL**: paste the connection string from step 1. Create it.
 4. Wait until the service says **Live** (a few minutes). In its **Logs** you should see:
    ```
-   Data: PostgreSQL (aws-0-eu-central-1.pooler.supabase.com:5432/postgres) - 15 users, 0 transactions
+   Data: PostgreSQL (aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres) - 15 users, 0 transactions
    ```
 5. The address is at the top of the service page, e.g. `https://cultra-api.onrender.com`. Open
    `<address>/health` in a browser: `{"status":"ok","storage":"PostgreSQL"}`.
