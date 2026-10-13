@@ -579,10 +579,10 @@
 
     <script>
 
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
@@ -604,7 +604,7 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
@@ -628,7 +628,7 @@
                 const response = await fetch(API + "/bankcards/" + user_id + "?type=merchant");
                 data = await response.json();
             } catch (error) {
-                list.innerHTML = '<p class="empty">Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.</p>';
+                list.innerHTML = '<p class="empty">' + SERVER_ERROR + '</p>';
                 return;
             }
 

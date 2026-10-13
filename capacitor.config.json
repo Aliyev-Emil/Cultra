@@ -1,0 +1,11 @@
+{
+  "appId": "com.emilaliyev.cultra",
+  "appName": "Cultra",
+  "webDir": "www",
+  "backgroundColor": "#0d111d",
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK"
+    }
+  }
+}

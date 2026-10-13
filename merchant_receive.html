@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Qəbul QR - Biznes - Cultra</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="vendor/qrcode.min.js"></script>
     <style>
         :root {
             color-scheme: dark;
@@ -388,10 +388,10 @@
         </div>
     </main>
     <script>
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
@@ -413,7 +413,7 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {

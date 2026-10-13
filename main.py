@@ -1,34 +1,71 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Literal
+import asyncio
+import hashlib
+import hmac
+import json
 import math
+import os
 import secrets
 import uuid
 from datetime import datetime, timedelta
+
+import storage      # saves the data below to a database (storage.py)
 
 app = FastAPI()
 
 from fastapi.middleware.cors import CORSMiddleware
 
+# Which web pages may call this server. On your laptop: any ("*"). On Render the CORS_ORIGINS
+# setting lists only the phone app (https://localhost) and Live Server - see render.yaml.
+CORS_ORIGINS = [origin.strip() for origin in os.environ.get("CORS_ORIGINS", "*").split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # fine for local dev, never do this in production
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ---------- Passwords ----------
+# Passwords are never saved as typed, only as a salted hash: whoever opens the database
+# (you in Supabase, for example) can't read anyone's password.
+PASSWORD_ROUNDS = 100_000    # more rounds = slower to guess, but also a slower login on a small server
+
+
+def hash_password(password, salt=None):
+    """"12345678" -> "<salt>$<hash>". The same password and salt always give the same hash."""
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), PASSWORD_ROUNDS)
+    return salt + "$" + digest.hex()
+
+
+def password_matches(saved, password):
+    """Hashes the typed password with the saved salt and compares the results."""
+    salt = saved.partition("$")[0]
+    try:
+        return hmac.compare_digest(hash_password(password, salt), saved)
+    except ValueError:       # not a hash at all
+        return False
+
+
+DEMO_PASSWORD = hash_password("12345678")    # every demo account logs in with 12345678
+
 
 # All registered users, keyed by a unique user_id
 users = {
     "123": {
         "username": "Emil",
-        "password": "12345678",
+        "password": DEMO_PASSWORD,
         "accounts": {},
         "app_balance": 0.0,
         "merchant": None
     },
     "456": {
         "username": "Alik",
-        "password": "12345678",
+        "password": DEMO_PASSWORD,
         "accounts": {},
         "app_balance": 0.0,
         "merchant": None
@@ -441,12 +478,12 @@ def resolve_short_code(code):
 
 # ---------- Demo merchants (test data) ----------
 # Each one is a normal user who has already registered as a merchant.
-# Log in with the username + password 12345678, then press Merchant.
+# Log in with the username + password 12345678, then press Biznes.
 
 def demo_merchant(user_id, username, business_name, category, balance=0.0):
     users[user_id] = {
         "username": username,
-        "password": "12345678",
+        "password": DEMO_PASSWORD,
         "accounts": {},
         "app_balance": 0.0,
         "merchant": {
@@ -480,6 +517,88 @@ demo_merchant("2301", "zeytun",       "Zeytun Aptek",     "pharmacies", 402.90)
 demo_merchant("2401", "bakubus",      "BakuBus",          "transport", 655.00)
 demo_merchant("2402", "metro",        "Bakı Metropoliteni", "transport", 980.20)
 demo_merchant("2403", "ady",          "Azərbaycan Dəmir Yolları", "transport", 1120.75)
+
+
+# ---------- Saving the data (storage.py) ----------
+# The endpoints work with the dicts and lists above, like before. They're also saved in a
+# database, so nothing is lost when the server restarts (Render restarts it on every deploy,
+# and on the free plan after 15 minutes without visitors).
+#   - the very first start (empty database): the demo data above is saved as the starting point
+#   - every start after that: the saved data replaces the demo data above
+# To start over from the demo data: delete cultra.db (laptop) or the rows of the cultra_data
+# table (Supabase), then restart the server.
+
+DATA = {                     # name in the database -> the dict or list it holds
+    "users": users,
+    "bankcards": bankcards,
+    "pending_payments": pending_payments,
+    "transactions": transactions,
+    "short_codes": short_codes,
+}
+
+
+def data_as_json():
+    """Every part as JSON text. Comparing these texts shows what a request changed."""
+    return {name: json.dumps(value, ensure_ascii=False) for name, value in DATA.items()}
+
+
+def load_saved_data():
+    """Fills users, bankcards, ... with what the database has. Returns the names it found."""
+    saved = store.load_all()
+    for name, text in saved.items():
+        if name not in DATA:
+            continue                      # something this version of the code doesn't use
+        value = json.loads(text)
+        target = DATA[name]
+        # Changed in place, not replaced: the endpoints use these same dict/list objects
+        if isinstance(target, dict):
+            target.clear()
+            target.update(value)
+        else:
+            target[:] = value
+    return set(saved)
+
+
+# If the database can't be reached, the server stops right here instead of starting. On purpose:
+# starting with the demo data would overwrite everyone's real data with it on the first save.
+store = storage.open_store()
+found = load_saved_data()
+saved_json = data_as_json()               # what the database holds right now
+first_start = {name: text for name, text in saved_json.items() if name not in found}
+if first_start:
+    store.save(first_start)
+print(f"Data: {store.kind} ({store.where}) - {len(users)} users, {len(transactions)} transactions", flush=True)
+
+data_lock = asyncio.Lock()
+
+
+@app.middleware("http")
+async def save_after_each_request(request, call_next):
+    """Runs around every request: one request at a time, then save whatever it changed."""
+    if request.url.path == "/health":
+        return await call_next(request)   # touches no data, and must answer even while a save is slow
+
+    # One at a time, so nothing changes halfway through saving (and two payments can't
+    # spend the same money at the same moment)
+    async with data_lock:
+        try:
+            return await call_next(request)
+        finally:
+            await save_changes()
+
+
+async def save_changes():
+    try:
+        current = data_as_json()
+        changed = {name: text for name, text in current.items() if saved_json[name] != text}
+        if not changed:
+            return                        # most requests only read
+        # In a helper thread, so the server can still answer /health while the database works
+        await asyncio.to_thread(store.save, changed)
+        saved_json.update(changed)
+    except Exception as error:
+        # Keep going with the data in memory: the next request tries to save it again
+        print("Could not save the data:", storage.describe(error), flush=True)
 
 
 class RegisterRequest(BaseModel):
@@ -569,6 +688,21 @@ class MerchantWithdraw(BaseModel):
     amount: float
 
 
+#--------------server------------
+
+
+@app.get("/")
+def home():
+    """Open the server's address in a browser to see that it's running."""
+    return {"app": "Cultra", "status": "ok"}
+
+
+@app.get("/health")
+def health():
+    """Render calls this to check the server is up (and the app calls it to wake the server up)."""
+    return {"status": "ok", "storage": store.kind}
+
+
 #--------------auth------------
 
 
@@ -577,7 +711,7 @@ def login(request: RegisterRequest):
 
     for user_id, user in users.items():
 
-        if user["username"] == request.username.strip() and user["password"] == request.password:
+        if user["username"] == request.username.strip() and password_matches(user["password"], request.password):
             return {
                 "status": "success",
                 "user_id": user_id
@@ -617,7 +751,7 @@ def register(request: RegisterRequest):
 
     users[user_id] = {
         "username": username,
-        "password": request.password,
+        "password": hash_password(request.password),     # never the password itself
         "accounts": {},
         "app_balance": 0.0,
         "merchant": None

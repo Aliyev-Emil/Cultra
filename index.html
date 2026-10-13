@@ -327,6 +327,11 @@
             }
         }
     </style>
+    <script src="config.js"></script>
+    <script>
+        // Already logged in (the app remembers you): straight to the home screen
+        if (getUserId()) window.location.replace("main_menu.html");
+    </script>
 </head>
 
 <body>

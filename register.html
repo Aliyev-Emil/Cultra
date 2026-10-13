@@ -140,7 +140,7 @@
 <body>
   <main class="page">
 
-    <a class="back" href="先.html" aria-label="Geri">←</a>
+    <a class="back" href="index.html" aria-label="Geri">←</a>
 
     <h1>Hesab yarat</h1>
     <p class="lead">İstifadəçi adınızı və parolunuzu daxil edin</p>
@@ -198,17 +198,17 @@
 
         if (data.status === "success") {
           // Save the user so the other pages know who is logged in
-          sessionStorage.setItem("user_id", data.user_id);
+          saveUserId(data.user_id);         // remembered: the app stays logged in
 
           show("Hesab yaradıldı", true);
-          window.location.href = "main_menu.html";
+          window.location.replace("main_menu.html");   // "back" won't return to this form
         } else {
           show(data.reason || "Qeydiyyat alınmadı", false);
           submit.disabled = false;
         }
 
       } catch (error) {
-        show("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.", false);
+        show(SERVER_ERROR, false);
         submit.disabled = false;
       }
     });

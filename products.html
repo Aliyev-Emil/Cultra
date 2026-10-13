@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Test məhsul barkodları - Cultra</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
+    <script src="vendor/JsBarcode.all.min.js"></script>
 
     <style>
         * {
@@ -96,12 +96,25 @@
                 border-color: #cfd3da;
             }
         }
+
+        .back-to-till {
+            display: inline-block;
+            margin-bottom: 14px;
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-to-till[hidden] {
+            display: none;
+        }
     </style>
     <script src="config.js"></script>
 </head>
 
 <body>
     <main class="page">
+        <a class="back-to-till" href="merchant_scan.html" hidden>← Kassaya qayıt</a>
         <h1>Test məhsul barkodları</h1>
         <p class="lead">
             Biznes kassasını yoxlamaq üçün nümunə məhsullar. Bu səhifəni başqa ekranda açın (və ya çap edin),
@@ -114,6 +127,9 @@
     </main>
 
     <script>
+        // Phone app: opened in place of the till (no tabs), so show the way back
+        if (IN_APP) document.querySelector(".back-to-till").hidden = false;
+
         const grid = document.getElementById("grid");
         const loading = document.getElementById("loading");
 
@@ -124,7 +140,7 @@
                 const response = await fetch(API + "/products");
                 data = await response.json();
             } catch (error) {
-                loading.textContent = "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.";
+                loading.textContent = SERVER_ERROR;
                 return;
             }
             if (data.status !== "success") {

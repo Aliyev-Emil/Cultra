@@ -2,7 +2,7 @@
 // on this user (someone scanned their payment QR) and shows an approve/decline
 // sheet no matter which page they're on.
 (function () {
-    const user_id = sessionStorage.getItem("user_id");
+    const user_id = getUserId();
     if (!user_id) return; // this page's own script handles the logged-out redirect
 
     const style = document.createElement("style");

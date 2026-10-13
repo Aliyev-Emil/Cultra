@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kassa - Biznes - Cultra</title>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="vendor/html5-qrcode.min.js"></script>
     <script src="scanner_az.js"></script>
     <style>
         :root {
@@ -540,6 +540,7 @@
         }
     </style>
     <script src="config.js"></script>
+    <script src="native_scanner.js"></script>
 </head>
 <body>
     <main class="page">
@@ -587,10 +588,10 @@
         </div>
     </div>
     <script>
-        const user_id = sessionStorage.getItem("user_id");
+        const user_id = getUserId();
 
         // Not logged in: go back to the welcome page
-        if (!user_id) window.location.href = "先.html";
+        if (!user_id) window.location.replace("index.html");
 
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
@@ -612,7 +613,7 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın." };
+                return { error: SERVER_ERROR };
             }
 
             if (data.status !== "success") {
@@ -640,6 +641,8 @@
             if (!status) return;
             status.className = "status" + (kind ? " " + kind : "");
             status.textContent = text;
+            // Phone app: also shown over the camera, with the cart so far
+            if (NativeScanner.isOpen()) NativeScanner.message(text + "\n" + cartSummary(), kind);
         }
 
         // ---------- Cart ----------
@@ -697,6 +700,11 @@
 
         function formatMoney(q) {
             return "₼" + (q / 100).toFixed(2);
+        }
+
+        function cartSummary() {
+            const count = cartCount();
+            return count ? "Səbət: " + count + " məhsul · " + formatMoney(cartTotal()) : "Səbət boşdur";
         }
 
         function renderCart(highlightCode) {
@@ -962,6 +970,13 @@
 
         cancelBtn.addEventListener("click", closeSheet);
 
+        // Android back button with the sheet open: close the sheet, stay on this page
+        onBackButton(function () {
+            if (!sheetBg.classList.contains("on")) return false;
+            closeSheet();
+            return true;
+        });
+
         confirmBtn.addEventListener("click", async function () {
             const isCart = chargingCart;
             const amount = isCart ? cartTotal() / 100 : parseFloat(amountInput.value);
@@ -1003,7 +1018,7 @@
                     closeSheet();
                 }
             } catch (error) {
-                setStatus("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.", "error");
+                setStatus(SERVER_ERROR, "error");
                 closeSheet();
             }
 
@@ -1200,7 +1215,30 @@
                 return;
             }
 
-            // The live scanner handles QR codes. (No qrbox: the whole camera view is scanned, no frame drawn.)
+            if (NativeScanner.available) {
+                // Phone app: the phone's own scanner (native_scanner.js). It stays open while products
+                // are scanned one after another, and closes by itself for the customer's code.
+                const openButton = document.createElement("button");
+                openButton.className = "btn";
+                openButton.id = "open-camera";
+                openButton.type = "button";
+                openButton.textContent = "📷 Skan et";
+                openButton.addEventListener("click", openNativeScanner);
+                const reader = document.getElementById("reader");
+                reader.hidden = true;
+                reader.before(openButton);
+
+                // The test barcodes open in the app itself (there are no tabs)
+                document.querySelector(".test-link").removeAttribute("target");
+                return;
+            }
+
+            useWebScanner();
+        }
+
+        // Browser: html5-qrcode in the page. The live scanner handles QR codes (no qrbox: the whole
+        // camera view is scanned, no frame drawn), startBarcodeReader the barcodes.
+        function useWebScanner() {
             const scanner = new Html5QrcodeScanner("reader", {
                 fps: 10,
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
@@ -1208,6 +1246,40 @@
             });
             scanner.render(onScanSuccess);
             startBarcodeReader(scanner);
+        }
+
+        async function openNativeScanner() {
+            if (pendingQr || NativeScanner.isOpen()) return;
+            try {
+                await NativeScanner.open({
+                    formats: ["EAN_13", "CODE_128", "QR_CODE"],   // products, the customer's barcode, the customer's QR
+                    wide: true,
+                    accent: "#d9a441",
+                    hint: "Məhsulun barkodu və ya müştərinin ödəniş kodu",
+                    doneLabel: "Səbətə bax",
+                    onCode: function (text) {
+                        // "true": no extra wait here, native_scanner.js already ignores a code that stays in view
+                        handleCode(text, true);
+                        if (pendingQr) NativeScanner.close();      // the customer's code: the charge sheet is open
+                    }
+                });
+                NativeScanner.message(cartSummary());
+            } catch (error) {
+                setStatus(error.message, "error");
+                if (error.permissionDenied) {
+                    const settings = document.createElement("button");
+                    settings.type = "button";
+                    settings.className = "text-btn";
+                    settings.textContent = "Parametrləri aç";
+                    settings.addEventListener("click", NativeScanner.openSettings);
+                    document.getElementById("status").append(" ", settings);
+                } else if (document.getElementById("open-camera")) {
+                    // The phone's scanner didn't start: use the browser one inside the app instead
+                    document.getElementById("open-camera").remove();
+                    document.getElementById("reader").hidden = false;
+                    useWebScanner();
+                }
+            }
         }
 
         init();

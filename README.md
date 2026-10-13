@@ -2,7 +2,7 @@
 
 **All your banks in one app.** Cultra is a QR-based payment app: link your bank cards, keep an in-app balance, and pay or get paid by scanning a code. Businesses can switch to a separate **merchant** mode with their own balance, bank accounts and sales history.
 
-> Status: working prototype. The whole app is in Azerbaijani. The backend keeps everything in memory, and the bank cards are simulated. See [Roadmap](#roadmap) for what's next.
+> Status: working prototype, also as an Android app. The whole app is in Azerbaijani. The backend saves everything in a database (a file on your laptop, PostgreSQL online), and the bank cards are simulated. See [Roadmap](#roadmap) for what's next.
 
 <p>
   <img src="docs/screenshots/welcome.png" width="19%" alt="Welcome screen">
@@ -26,6 +26,7 @@
   - [Levels (XP)](#levels-xp)
   - [Rules the server enforces](#rules-the-server-enforces)
 - [Running it locally](#running-it-locally)
+- [Phone app and online server](#phone-app-and-online-server)
 - [Project structure](#project-structure)
 - [API reference](#api-reference)
 - [What's been built so far](#whats-been-built-so-far)
@@ -67,12 +68,15 @@ The app is two parts:
 
 | Part | Tech | Role |
 |---|---|---|
-| Backend | Python, [FastAPI](https://fastapi.tiangolo.com/) (`main.py`) | Owns all balances and rules. Every payment is validated here. |
-| Frontend | Plain HTML, CSS and JavaScript pages | Calls the backend with `fetch()`. Uses [qrcodejs](https://github.com/davidshimjs/qrcodejs) to draw QR codes, [html5-qrcode](https://github.com/mebjas/html5-qrcode) 2.3.8 to scan them and [JsBarcode](https://github.com/lindell/JsBarcode) for barcodes. |
+| Backend | Python, [FastAPI](https://fastapi.tiangolo.com/) (`main.py`) | Owns all balances and rules. Every payment is validated here. `storage.py` saves the data: into `cultra.db` (SQLite) on your laptop, into PostgreSQL (Supabase) online. |
+| Frontend | Plain HTML, CSS and JavaScript pages | Calls the backend with `fetch()`. Uses [qrcodejs](https://github.com/davidshimjs/qrcodejs) to draw QR codes, [html5-qrcode](https://github.com/mebjas/html5-qrcode) 2.3.8 to scan them and [JsBarcode](https://github.com/lindell/JsBarcode) for barcodes, all kept in `vendor/`. |
+| Phone app | [Capacitor](https://capacitorjs.com/) 8 | The same pages as an Android app, with the phone's own scanner ([ML Kit](https://github.com/capawesome-team/capacitor-mlkit)). See [Phone app and online server](#phone-app-and-online-server). |
 
-The logged-in user's id is kept in `sessionStorage` and sent with each request.
+The logged-in user's id is sent with each request. It's kept per tab (`sessionStorage`, so two tabs can be two people while testing) and remembered (`localStorage`, so the phone app stays logged in).
 
-Every page loads `config.js`, which points it at the backend on the same computer that serves the pages (port 8000). Opened on the laptop that's `http://127.0.0.1:8000`; opened from a phone on the same Wi-Fi it becomes `http://<laptop-ip>:8000` automatically. The scanner library has no language setting, so `scanner_az.js` replaces its English buttons and messages with Azerbaijani.
+Every page loads `config.js`, which says where the backend is. In a browser it's the computer that serves the pages (port 8000): opened on the laptop that's `http://127.0.0.1:8000`; opened from a phone on the same Wi-Fi it becomes `http://<laptop-ip>:8000` automatically. The phone app always uses the online server (`SERVER_URL`), and a browser can too with `?server=online` at the end of the address. The scanner library has no language setting, so `scanner_az.js` replaces its English buttons and messages with Azerbaijani.
+
+The server saves after every request that changed something, and loads everything back when it starts. The very first start (empty database) saves the demo data from `main.py`; after that the database wins.
 
 ### The three kinds of money
 
@@ -235,13 +239,13 @@ uvicorn main:app --reload
 python -m http.server 5500
 ```
 
-Then open **http://localhost:5500/先.html**, the welcome page. You can also open the pages with VS Code's Live Server. Serving from `localhost` rather than opening the files directly is the safest way to make sure the browser lets the scanner use the camera.
+Then open **http://localhost:5500/**, the welcome page (`index.html`). You can also open the pages with VS Code's Live Server. Serving from `localhost` rather than opening the files directly is the safest way to make sure the browser lets the scanner use the camera.
 
-**Demo with a phone.** Start the backend with `uvicorn main:app --reload --host 0.0.0.0` so other devices can reach it, then open `http://<laptop-ip>:5500/先.html` on a phone on the same Wi-Fi (`ipconfig` shows the laptop's IP). No page needs changing: `config.js` finds the backend by itself. Browsers only allow the camera on `https` or `localhost`, so let the phone show its **Payment QR** and approve the request while the laptop does the scanning.
+**Demo with a phone.** Start the backend with `uvicorn main:app --reload --host 0.0.0.0` so other devices can reach it, then open `http://<laptop-ip>:5500/` on a phone on the same Wi-Fi (`ipconfig` shows the laptop's IP). No page needs changing: `config.js` finds the backend by itself. Browsers only allow the camera on `https` or `localhost`, so let the phone show its **Payment QR** and approve the request while the laptop does the scanning.
 
 The API's interactive docs are at **http://127.0.0.1:8000/docs**.
 
-**Test data.** Everything resets when the server restarts.
+**Test data.** Saved in `cultra.db` next to `main.py`, so it survives restarts. Delete that file (with the server stopped) to start over from the demo data below.
 
 | | Value |
 |---|---|
@@ -253,16 +257,47 @@ To try a merchant payment, log in as Alik in one browser window and become a mer
 
 ---
 
+## Phone app and online server
+
+The Android app is the same pages wrapped with Capacitor. It talks to the backend running online on [Render](https://render.com), which saves its data in [Supabase](https://supabase.com) (PostgreSQL). Both have free plans. Step by step, from creating the database to a signed APK: **[docs/mobile-app.md](docs/mobile-app.md)**.
+
+In short, once Node.js and Android Studio are installed:
+
+```bash
+npm install
+npm run android:setup    # first time: creates the Android project in android/
+npm run open             # Android Studio, then Build > Generate APKs
+npm run sync             # after changing pages
+```
+
+What the app adds to the pages:
+
+- **The phone's own scanner** (`native_scanner.js`, ML Kit through `@capacitor-mlkit/barcode-scanning`). The camera picture is drawn behind the page, which turns see-through while scanning. On Skan et it opens by itself; on the Kassa it stays open while products are scanned one after another and closes for the customer's code. ML Kit's model is inside the app, so it works on phones without Google Play too. If the camera can't start, the page falls back to the browser scanner.
+- **Stays logged in**, and the welcome page goes straight to the home page.
+- **Android back button:** closes an open camera or popup first, leaves the app on the home page, otherwise goes back a page.
+- **"Server oyanır…"** at the top while the free server wakes up (up to a minute after 15 idle minutes).
+
+---
+
 ## Project structure
 
 ```
 Cultra/
 ├── main.py                       # FastAPI backend: data, rules, all endpoints
+├── storage.py                    # Saves the data: cultra.db (SQLite) locally, PostgreSQL when DATABASE_URL is set
 ├── requirements.txt
-├── config.js                     # Where the backend is (same computer, port 8000), loaded by every page
+├── render.yaml, .python-version  # The online server on Render
+├── config.js                     # Where the backend is, who is logged in, the app's back button; loaded by every page
 ├── scanner_az.js                 # Puts the scanner library's own buttons and messages into Azerbaijani
+├── native_scanner.js             # Phone app: the phone's own scanner (ML Kit), used by scan.html and merchant_scan.html
+├── vendor/                       # qrcodejs, JsBarcode, html5-qrcode (+ licenses)
 │
-├── 先.html                        # Welcome / landing page
+├── package.json, capacitor.config.json   # Phone app (Capacitor): versions, npm scripts, app name and id
+├── scripts/build-web.js          # Copies the pages into www/ for the app
+├── scripts/patch-android.js      # Camera permission, colours, icon and version in the Android project
+├── resources/android/res/        # App icon
+│
+├── index.html                    # Welcome / landing page
 ├── register.html, login.html     # Sign up / log in
 │
 ├── main_menu.html                # Personal home: level badge, search, Cultra balance, cards, cashback + send tiles, history, log out; Biznes in the bottom bar
@@ -290,6 +325,7 @@ Cultra/
 ├── qr_test.py, scan_qr.py        # Dev helpers: generate / decode test QR images
 ├── qr.png, appbalance.png, receive_qr.png   # Test QR images made by qr_test.py
 ├── docs/levels.md                # The levels (XP) design
+├── docs/mobile-app.md            # Database, online server and APK, step by step
 └── docs/screenshots/             # Images used in this README
 ```
 
@@ -298,6 +334,13 @@ Cultra/
 ## API reference
 
 All endpoints return JSON with `"status": "success"` or `"status": "failed"` and a `"reason"`.
+
+**Server**
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/` | Shows that the server is running |
+| GET | `/health` | Health check (Render, and the app's "waking up" note); also says where the data is saved |
 
 **Auth and users**
 
@@ -377,6 +420,7 @@ All endpoints return JSON with `"status": "success"` or `"status": "failed"` and
     - Usernames are validated (3–20 characters, unique ignoring case).
     - One backend address for all pages (`config.js`), which also makes phone demos work.
     - The scanner library is pinned to version 2.3.8, so a new release can't change the app overnight.
+16. **Android app and online server.** The data is saved in a database (SQLite locally, PostgreSQL on Supabase online) and survives restarts; passwords are stored hashed; the backend runs on Render (`render.yaml`) with CORS limited to the app; the pages are wrapped as an Android app with Capacitor, with the phone's own scanner (ML Kit), remembered login, the back button, and the libraries bundled in `vendor/`.
 
 ---
 
@@ -385,11 +429,10 @@ All endpoints return JSON with `"status": "success"` or `"status": "failed"` and
 This is a prototype, and these are known gaps rather than surprises:
 
 - **No real authentication.** The app sends a `user_id` and the server trusts it, so anyone who knows an id could act as that user.
-- **Plain-text passwords** in memory.
-- **No database.** All users, cards and transactions are lost when the server restarts.
+- **One server process.** The data is held in memory and saved after each request, so the server must run as a single process (as on Render); two servers on one database would overwrite each other.
 - **Simulated banks.** `bankcards` in `main.py` stands in for real banks.
 - **Fixed exchange rate.** 1 USD = 1.7 AZN.
-- **CORS is open to all origins**, and there's no HTTPS yet (phones can't use the camera over plain `http`).
+- **The phone app needs the online server.** It can't use the backend on your laptop (the app is `https`, the laptop backend plain `http`).
 - **Referral XP can be farmed with fake accounts**, because signing up needs no identity check. Real sign-up (phone number / ID verification) would close it.
 
 ---
@@ -399,14 +442,16 @@ This is a prototype, and these are known gaps rather than surprises:
 **Next up**
 - [x] **Cashback for customers.** See [Cashback](#cashback).
 - [ ] **Real authentication.** Issue a token at login (for example a JWT) and check it on every request instead of trusting `user_id`.
-- [ ] **Hash passwords** (bcrypt or argon2).
-- [ ] **Persistent storage** with SQLite or PostgreSQL.
+- [x] **Hash passwords** (PBKDF2, from Python's standard library).
+- [x] **Persistent storage** with SQLite (laptop) or PostgreSQL (online).
+- [x] **Android app** with Capacitor. See [docs/mobile-app.md](docs/mobile-app.md).
 - [x] **Levels (XP).** See [Levels (XP)](#levels-xp).
 
 **Later**
 - [ ] Edit the merchant profile (rename, change category).
 - [ ] Live exchange rates and more currencies.
-- [ ] HTTPS and restricted CORS for deployment (the API address is already automatic, see `config.js`).
+- [x] HTTPS and restricted CORS for deployment (Render).
+- [ ] Store the data in proper tables (one row per user, card, transaction) once there are many users.
 - [x] One UI language: Azerbaijani.
 - [ ] An English version with a language switch, for investors who don't read Azerbaijani.
 - [ ] Real bank integrations in place of the simulated `bankcards`.

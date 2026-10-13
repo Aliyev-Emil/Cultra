@@ -1,0 +1,18 @@
+# Render Blueprint: runs the backend (main.py) online as a free web service.
+# Render > New > Blueprint > pick this repository > it asks for DATABASE_URL: paste the Supabase
+# connection string (Connect > Session pooler) with your database password in it.
+# The full steps are in docs/mobile-app.md.
+services:
+  - type: web
+    name: cultra-api              # the address becomes https://cultra-api.onrender.com (if the name is free)
+    runtime: python
+    plan: free
+    region: frankfurt             # pick the same region for the Supabase project
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL         # secret: typed in on Render, never in the code
+        sync: false
+      - key: CORS_ORIGINS         # pages allowed to call the server: the phone app + Live Server on your laptop
+        value: https://localhost,http://localhost,capacitor://localhost,http://localhost:5500,http://127.0.0.1:5500
