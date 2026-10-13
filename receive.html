@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Receive QR - Cultra</title>
+    <title>Qəbul QR - Cultra</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -154,6 +154,23 @@
             text-align: center;
         }
 
+        /* "Money arrived" line under the code */
+
+        .received {
+            margin: 16px 0 0;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background-color: rgba(63, 192, 141, 0.12);
+            border: 1px solid rgba(63, 192, 141, 0.35);
+            color: #3fc08d;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .received[hidden] {
+            display: none;
+        }
+
         /* Empty state */
 
         .empty {
@@ -167,15 +184,16 @@
             text-decoration: none;
         }
     </style>
+    <script src="config.js"></script>
 </head>
 
 <body>
     <main class="page">
 
-        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+        <a class="back" href="main_menu.html" aria-label="Ana səhifəyə qayıt">←</a>
 
-        <h1>Receive QR</h1>
-        <p class="lead">Someone scans this and pays you directly — no approval needed on your side.</p>
+        <h1>Qəbul QR</h1>
+        <p class="lead">Bu kodu skan edən şəxs sizə birbaşa ödəniş edir. Sizdən təsdiq tələb olunmur.</p>
 
         <div id="setup"></div>
 
@@ -194,7 +212,7 @@
         let selectedCard = APP_BALANCE;
 
         function accountLabel(id) {
-            return id === APP_BALANCE ? "Cultra balance" : "•••• " + id.slice(-4);
+            return id === APP_BALANCE ? "Cultra balansı" : "•••• " + id.slice(-4);
         }
         let fixedMode = false; // false = any amount, true = fixed amount
 
@@ -210,7 +228,7 @@
                 const amount = parseFloat(document.getElementById("amount-input").value);
                 if (!amount || amount <= 0) {
                     document.getElementById("qrcode").innerHTML = "";
-                    document.getElementById("qr-caption").innerText = "Enter an amount to generate the code.";
+                    document.getElementById("qr-caption").innerText = "Kod yaratmaq üçün məbləği daxil edin.";
                     return;
                 }
                 amountPart = amount.toFixed(2);
@@ -227,8 +245,8 @@
             });
 
             document.getElementById("qr-caption").innerText =
-                (fixedMode ? "They'll pay " + (currency === "AZN" ? "₼" : currency + " ") + amountPart : "They choose the amount") +
-                " into " + accountLabel(selectedCard);
+                (fixedMode ? "Məbləğ: " + (currency === "AZN" ? "₼" : currency + " ") + amountPart : "Məbləği ödəyən seçir") +
+                " · Hesab: " + accountLabel(selectedCard);
         }
 
         function setMode(toFixed) {
@@ -242,15 +260,15 @@
         async function init() {
             let data;
             try {
-                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                const response = await fetch(API + "/bankcards/" + user_id);
                 data = await response.json();
             } catch (error) {
-                empty("Can't reach the server. Check that the backend is running.");
+                empty("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.");
                 return;
             }
 
             if (data.status !== "success") {
-                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                empty('Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>');
                 return;
             }
 
@@ -261,22 +279,22 @@
 
             setup.innerHTML =
                 '<div class="toggle">' +
-                '<button id="mode-any" class="active">Any amount</button>' +
-                '<button id="mode-fixed">Fixed amount</button>' +
+                '<button id="mode-any" class="active">İstənilən məbləğ</button>' +
+                '<button id="mode-fixed">Sabit məbləğ</button>' +
                 "</div>" +
 
                 '<div id="amount-row" style="display:none;">' +
-                '<label for="amount-input">Amount</label>' +
+                '<label for="amount-input">Məbləğ</label>' +
                 '<input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00" />' +
                 "</div>" +
 
                 '<div class="row">' +
                 '<div>' +
-                '<label for="card-select">Receive into</label>' +
+                '<label for="card-select">Qəbul hesabı</label>' +
                 '<select id="card-select"></select>' +
                 "</div>" +
                 '<div>' +
-                '<label for="currency-select">Currency</label>' +
+                '<label for="currency-select">Valyuta</label>' +
                 '<select id="currency-select">' +
                 '<option value="AZN">AZN</option>' +
                 '<option value="USD">USD</option>' +
@@ -287,13 +305,14 @@
                 '<div class="qr-card">' +
                 '<div id="qrcode"></div>' +
                 '<p class="qr-caption" id="qr-caption"></p>' +
-                "</div>";
+                "</div>" +
+                '<p class="received" id="received" role="status" hidden></p>';
 
             const select = document.getElementById("card-select");
 
             const appOption = document.createElement("option");
             appOption.value = APP_BALANCE;
-            appOption.innerText = "Cultra balance";
+            appOption.innerText = "Cultra balansı";
             select.appendChild(appOption);
 
             numbers.forEach(function (number) {
@@ -316,7 +335,44 @@
             renderQr();
         }
 
+        // ---------- Money arriving ----------
+        // The payer's phone does the paying, so this page watches the history and says when money lands.
+        let newestSeen = null;      // id of the newest history entry already known (null = not looked yet)
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function watchIncoming() {
+            let data;
+            try {
+                const response = await fetch(API + "/transactions/" + user_id + "?limit=1");
+                data = await response.json();
+            } catch (error) {
+                return;             // try again on the next tick
+            }
+            if (data.status !== "success") return;
+
+            const newest = data.transactions[0];
+            const id = newest ? newest.id : "";
+            if (newestSeen === null) {
+                newestSeen = id;    // first look: only remember what's already there
+                return;
+            }
+            if (id === newestSeen) return;
+            newestSeen = id;
+
+            if (newest.direction === "received") {
+                const box = document.getElementById("received");
+                if (!box) return;
+                box.textContent = "✓ ₼" + money(newest.amount) + " qəbul edildi: " + newest.other_username;
+                box.hidden = false;
+            }
+        }
+
         init();
+        watchIncoming();
+        setInterval(watchIncoming, 3000);
     </script>
 
     <script src="pending_requests.js"></script>

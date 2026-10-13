@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
     <meta name="color-scheme" content="dark" />
@@ -151,12 +151,13 @@
       document.documentElement.classList.add("merchant");
     }
   </script>
+    <script src="config.js"></script>
 </head>
 
 <body>
   <main class="page">
 
-    <a class="back" href="bank_cards.html" aria-label="Back to your cards">←</a>
+    <a class="back" href="bank_cards.html" aria-label="Kartlarınıza qayıt">←</a>
 
     <h1>Bank kartı əlavə et</h1>
 
@@ -167,11 +168,11 @@
       <div class="row">
         <div>
           <label for="bank_month">Ay</label>
-          <input id="bank_month" placeholder="MM" maxlength="2" inputmode="numeric" autocomplete="cc-exp-month" required />
+          <input id="bank_month" placeholder="AA" maxlength="2" inputmode="numeric" autocomplete="cc-exp-month" required />
         </div>
         <div>
           <label for="bank_year">İl</label>
-          <input id="bank_year" placeholder="YY" maxlength="2" inputmode="numeric" autocomplete="cc-exp-year" required />
+          <input id="bank_year" placeholder="İİ" maxlength="2" inputmode="numeric" autocomplete="cc-exp-year" required />
         </div>
         <div>
           <label for="bank_cvv">CVV</label>
@@ -198,7 +199,7 @@
     const afterAddUrl = isMerchant ? "merchant_main_page.html" : "bank_cards.html";
 
     document.querySelector(".back").href = afterAddUrl;
-    if (isMerchant) document.querySelector("h1").innerText = "Satıcı bank hesabı əlavə et";
+    if (isMerchant) document.querySelector("h1").innerText = "Biznes bank hesabı əlavə et";
 
     const form = document.getElementById("card-form");
     const result = document.getElementById("result");
@@ -223,7 +224,7 @@
       show("", false);
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/addbank", {
+        const response = await fetch(API + "/addbank", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -241,17 +242,17 @@
         const data = await response.json();
 
         if (data.status === "success") {
-          show("Card added", true);
+          show("Kart əlavə olundu", true);
           setTimeout(function () {
             window.location.href = afterAddUrl;
           }, 800);
         } else {
-          show("Couldn't add card: " + data.reason, false);
+          show(data.reason || "Kartı əlavə etmək alınmadı", false);
           submit.disabled = false;
         }
 
       } catch (error) {
-        show("Can't reach the server. Check that the backend is running.", false);
+        show("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.", false);
         submit.disabled = false;
       }
     });

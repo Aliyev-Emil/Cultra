@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Keşbek - Cultra</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 24px;
+        }
+
+        .empty {
+            color: #71809f;
+            line-height: 1.5;
+        }
+
+        .empty a {
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* This month's total */
+
+        .summary {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #3fc08d;
+            border-radius: 24px;
+            padding: 22px 24px;
+            margin-bottom: 26px;
+        }
+
+        .summary-title {
+            color: #8491ad;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .summary-total {
+            color: #3fc08d;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0 8px;
+        }
+
+        .summary-sub {
+            color: #71809f;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: bold;
+            margin: 0 0 12px;
+        }
+
+        /* One row per category */
+
+        .category {
+            padding: 14px 4px 16px;
+            border-bottom: 1px solid #222a3a;
+        }
+
+        .category-top {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .category-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: #20283a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .category-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .category-name {
+            font-weight: bold;
+        }
+
+        .category-rate {
+            color: #61708d;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .category-amount {
+            text-align: right;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .category-amount .cap {
+            color: #61708d;
+            font-weight: normal;
+        }
+
+        .category-full {
+            color: #3fc08d;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .bar {
+            height: 6px;
+            border-radius: 3px;
+            background-color: #20283a;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background-color: #3fc08d;
+        }
+
+        /* Level (XP) card */
+
+        .level-card {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 24px;
+            padding: 20px 22px;
+            margin-bottom: 14px;
+        }
+
+        .level-top {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .level-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background-color: rgba(247, 148, 50, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .level-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .level-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .level-xp {
+            color: #8491ad;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .level-perk {
+            color: #f79432;
+            background-color: rgba(247, 148, 50, 0.12);
+            border-radius: 10px;
+            padding: 4px 9px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .bar-fill.level {
+            background-color: #f79432;
+        }
+
+        .level-next {
+            color: #8491ad;
+            font-size: 13px;
+            margin: 10px 0 0;
+        }
+
+        .level-keep {
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 10px 0 0;
+            padding: 10px 12px;
+            border-radius: 12px;
+        }
+
+        .level-keep.ok {
+            color: #3fc08d;
+            background-color: rgba(63, 192, 141, 0.1);
+        }
+
+        .level-keep.warn {
+            color: #f7b232;
+            background-color: rgba(247, 178, 50, 0.1);
+        }
+
+        /* How levels work */
+
+        .how {
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            padding: 6px 16px 12px;
+        }
+
+        .how-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #222a3a;
+            font-size: 14px;
+        }
+
+        .how-row b {
+            color: #f79432;
+            white-space: nowrap;
+        }
+
+        .how-note {
+            color: #71809f;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 10px 0 0;
+        }
+
+        .levels {
+            margin-top: 12px;
+        }
+
+        .levels-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #8491ad;
+        }
+
+        .levels-row span:not(:first-child) {
+            text-align: right;
+        }
+
+        .levels-row.mine {
+            background-color: rgba(247, 148, 50, 0.12);
+            color: white;
+            font-weight: bold;
+        }
+
+        .note {
+            color: #61708d;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 20px 4px 26px;
+        }
+    </style>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <main class="page">
+
+        <a class="back" href="main_menu.html" aria-label="Geri">←</a>
+
+        <h1>Keşbek</h1>
+
+        <div id="content">
+            <p class="empty">Yüklənir...</p>
+        </div>
+
+    </main>
+
+    <script>
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const MONTHS = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
+            "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
+
+        // "on the 1st of <month>": lowercase, with the -da/-də ending each month takes
+        const MONTHS_ON = ["yanvarda", "fevralda", "martda", "apreldə", "mayda", "iyunda",
+            "iyulda", "avqustda", "sentyabrda", "oktyabrda", "noyabrda", "dekabrda"];
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // ×1 means "normal caps"
+        function perkText(multiplier) {
+            return multiplier === 1 ? "Adi limitlər" : "Limitlər ×" + multiplier;
+        }
+
+        function xpText(n) {
+            return n.toLocaleString("en-US") + " XP";
+        }
+
+        // Names come from the server: never put them into innerHTML raw
+        function esc(text) {
+            return String(text).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+
+        // ---------- Level (XP of the last 90 days) ----------
+        function levelCard(r) {
+            const level = r.level, next = r.next_level;
+            const percent = next ? Math.min(100, (r.xp / next.reach) * 100) : 100;
+
+            let html =
+                '<div class="level-card">' +
+                '<div class="level-top">' +
+                '<div class="level-icon">' + esc(level.icon) + "</div>" +
+                '<div class="level-info">' +
+                '<div class="level-name">' + esc(level.name) + " səviyyə</div>" +
+                '<div class="level-xp">' + xpText(r.xp) + " · son " + r.rules.window_days + " gün</div>" +
+                "</div>" +
+                '<div class="level-perk">' + perkText(level.multiplier) + "</div>" +
+                "</div>" +
+                '<div class="bar"><div class="bar-fill level" style="width:' + percent.toFixed(1) + '%"></div></div>' +
+                '<p class="level-next">' +
+                (next
+                    ? esc(next.icon + " " + next.name) + " səviyyəsinə " + xpText(next.reach - r.xp) + " qalıb (limitlər ×" + next.multiplier + ")"
+                    : "Ən yüksək səviyyədəsiniz") +
+                "</p>";
+
+            // Bronze can't drop. Everyone else: what the check on the next 1st will say
+            if (r.keep) {
+                const parts = r.keep.date.split("-");                        // "2026-11-01"
+                const on = Number(parts[2]) + " " + MONTHS_ON[Number(parts[1]) - 1];
+                const ok = r.keep.xp_then >= r.keep.needed;
+                html += '<p class="level-keep ' + (ok ? "ok" : "warn") + '">' +
+                    on + " " + esc(level.name) + " səviyyəsini saxlamaq üçün " + xpText(r.keep.needed) + " lazımdır. " +
+                    (ok
+                        ? "Heç nə etməsəniz də o gün " + xpText(r.keep.xp_then) + " olacaq ✓"
+                        : "O gün " + xpText(r.keep.xp_then) + " olacaq — daha " + xpText(r.keep.needed - r.keep.xp_then) + " qazanın.") +
+                    "</p>";
+            }
+            return html + "</div>";
+        }
+
+        function howLevelsWork(r) {
+            const rules = r.rules;
+            let html =
+                '<p class="section-title">Səviyyələr necə işləyir</p>' +
+                '<div class="how">' +
+                '<div class="how-row"><span>Bizneslərə hər ödəniş (₼' + rules.min_payment + ' və daha çox), gündə ilk ' + rules.payments_per_day + '</span><b>+' + rules.per_payment + " XP</b></div>" +
+                '<div class="how-row"><span>Yeni biznesdə ilk ödəniş</span><b>+' + rules.new_merchant + " XP</b></div>" +
+                '<div class="how-row"><span>Pul göndərdiyiniz yeni istifadəçinin ilk ödənişi</span><b>+' + rules.referral + " XP</b></div>" +
+                '<p class="how-note">XP ' + rules.window_days + " gün qüvvədə qalır. Kifayət qədər XP toplayanda səviyyə dərhal qalxır. " +
+                "Hər ayın 1-də son " + rules.window_days + " günün XP-si səviyyəni saxlamağa çatmırsa, bir səviyyə enir.</p>" +
+                "</div>" +
+                '<div class="levels">';
+
+            r.levels.forEach(function (l) {
+                const mine = l.id === r.level.id;
+                html +=
+                    '<div class="levels-row' + (mine ? " mine" : "") + '">' +
+                    "<span>" + esc(l.icon + " " + l.name) + "</span>" +
+                    "<span>" + (l.reach ? xpText(l.reach) : "başlanğıc") + "</span>" +
+                    "<span>" + perkText(l.multiplier).toLowerCase() + "</span>" +
+                    "</div>";
+            });
+            return html + "</div>";
+        }
+
+        async function load() {
+            const content = document.getElementById("content");
+
+            let data, rewards;
+            try {
+                const results = await Promise.all([
+                    fetch(API + "/cashback/" + user_id).then(function (r) { return r.json(); }),
+                    // Levels are extra: a backend without /rewards (e.g. main_practice.py) still shows the cashback
+                    fetch(API + "/rewards/" + user_id).then(function (r) { return r.json(); }).catch(function () { return null; })
+                ]);
+                data = results[0];
+                rewards = results[1] && results[1].status === "success" ? results[1] : null;
+            } catch (error) {
+                content.innerHTML = '<p class="empty">Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.</p>';
+                return;
+            }
+
+            if (data.status !== "success") {
+                content.innerHTML = '<p class="empty">Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a></p>';
+                return;
+            }
+
+            // "2026-10" -> "Oktyabr", and the 1st of next month is when the caps start again
+            const monthIndex = Number(data.month.split("-")[1]) - 1;
+            const thisMonth = MONTHS[monthIndex];
+            const nextMonthOn = MONTHS_ON[(monthIndex + 1) % 12];
+
+            let left = 0;
+            data.categories.forEach(function (c) {
+                left += Math.max(0, c.cap - c.earned);
+            });
+
+            let html =
+                (rewards ? levelCard(rewards) : "") +
+                '<div class="summary">' +
+                '<p class="summary-title">' + thisMonth + " ayında qazandığınız keşbek</p>" +
+                '<div class="summary-total">₼' + money(data.total) + "</div>" +
+                '<p class="summary-sub">' +
+                (left > 0 ? "Bu ay daha ₼" + money(left) + " qazana bilərsiniz. " : "Bu ayın bütün limitləri dolub. ") +
+                "Limitlər 1 " + nextMonthOn + " yenilənir." +
+                (data.multiplier > 1 ? " Səviyyənizə görə limitləriniz ×" + data.multiplier + " böyükdür." : "") +
+                "</p>" +
+                "</div>" +
+                '<p class="section-title">Kateqoriyalar üzrə aylıq limit</p>';
+
+            data.categories.forEach(function (c) {
+                const percent = c.cap > 0 ? Math.min(100, (c.earned / c.cap) * 100) : 0;
+                const full = c.earned >= c.cap;
+
+                html +=
+                    '<div class="category">' +
+                    '<div class="category-top">' +
+                    '<div class="category-icon">' + esc(c.icon) + "</div>" +
+                    '<div class="category-info">' +
+                    '<div class="category-name">' + esc(c.name) + "</div>" +
+                    '<div class="category-rate">' + c.rate + "% keşbek</div>" +
+                    "</div>" +
+                    '<div class="category-amount">' +
+                    "₼" + money(c.earned) + ' <span class="cap">/ ₼' + money(c.cap) + "</span>" +
+                    (full ? '<div class="category-full">Limit doldu ✓</div>' : "") +
+                    "</div>" +
+                    "</div>" +
+                    '<div class="bar"><div class="bar-fill" style="width:' + percent.toFixed(1) + '%"></div></div>' +
+                    "</div>";
+            });
+
+            html += '<p class="note">' +
+                "Hər kateqoriyanın öz aylıq limiti var.</p>";
+
+            if (rewards) html += howLevelsWork(rewards);
+
+            content.innerHTML = html;
+        }
+
+        // A payment approved from the popup changes both the cashback and the XP
+        window.addEventListener("cultra:payment-resolved", load);
+
+        load();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>

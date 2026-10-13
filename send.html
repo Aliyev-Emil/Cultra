@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pul göndər - Cultra</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 24px;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        /* ---------- Step 1: search ---------- */
+
+        .search {
+            position: relative;
+        }
+
+        .search svg {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: #71809f;
+            stroke-width: 2;
+            stroke-linecap: round;
+            pointer-events: none;
+        }
+
+        .search input {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px 0 50px;
+        }
+
+        .search input::placeholder {
+            color: #596987;
+        }
+
+        .search input:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        .hint {
+            color: #71809f;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 14px 4px 0;
+        }
+
+        .hint.error {
+            color: #ff7a6b;
+        }
+
+        .hint a {
+            color: #f79432;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .results {
+            margin-top: 8px;
+        }
+
+        .person {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 12px 6px;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #222a3a;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .person:hover,
+        .person:focus-visible {
+            background-color: #131a2b;
+            outline: none;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: rgba(247, 148, 50, 0.15);
+            color: #f79432;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .person-name {
+            flex: 1;
+            min-width: 0;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* the part of the name that matches what was typed */
+        .person-name mark {
+            background: none;
+            color: #f79432;
+        }
+
+        .chevron {
+            color: #596987;
+            font-size: 22px;
+        }
+
+        /* ---------- Step 2: amount ---------- */
+
+        .to-card {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-left: 3px solid #f79432;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .to-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .to-name {
+            font-weight: bold;
+            font-size: 17px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .to-sub {
+            color: #8491ad;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .change {
+            color: #f79432;
+            font-weight: bold;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        label {
+            display: block;
+            color: #8491ad;
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        .amount-box {
+            display: flex;
+            align-items: center;
+            height: 72px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            padding: 0 18px;
+            margin-bottom: 12px;
+        }
+
+        .amount-box:focus-within {
+            border-color: #f79432;
+        }
+
+        .amount-box span {
+            color: #8491ad;
+            font-size: 30px;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .amount-box input {
+            flex: 1;
+            min-width: 0;
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        .amount-box input::placeholder {
+            color: #3d4760;
+        }
+
+        .chips {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .chip {
+            flex: 1;
+            height: 40px;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chip:hover {
+            border-color: #f79432;
+        }
+
+        select {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 8px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        .available {
+            color: #71809f;
+            font-size: 13px;
+            margin: 0 4px 22px;
+        }
+
+        .available.error {
+            color: #ff7a6b;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 18px;
+            background-color: #f79432;
+            color: #0d111d;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .send-error {
+            color: #ff7a6b;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 14px 4px 0;
+        }
+    </style>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <main class="page">
+
+        <button class="back" id="back" aria-label="Geri">←</button>
+
+        <h1>Pul göndər</h1>
+
+        <!-- Step 1: find the person -->
+        <section id="step-search">
+            <div class="search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-4-4" />
+                </svg>
+                <input id="search-input" type="text" placeholder="İstifadəçi adı" autocomplete="off"
+                    autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search"
+                    aria-label="İstifadəçi adı ilə axtar" autofocus />
+            </div>
+
+            <p class="hint" id="hint">İstifadəçi adını yazın. Pul onun Cultra balansına gedəcək.</p>
+
+            <div class="results" id="results"></div>
+        </section>
+
+        <!-- Step 2: how much, and from where -->
+        <section id="step-amount" hidden>
+            <div class="to-card">
+                <span class="avatar" id="to-avatar"></span>
+                <div class="to-info">
+                    <div class="to-name" id="to-name"></div>
+                    <div class="to-sub">Cultra balansına göndərilir</div>
+                </div>
+                <button class="change" id="change">Dəyiş</button>
+            </div>
+
+            <label for="amount-input">Məbləğ</label>
+            <div class="amount-box">
+                <span>₼</span>
+                <input id="amount-input" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off" />
+            </div>
+
+            <div class="chips">
+                <button class="chip" data-amount="5">₼5</button>
+                <button class="chip" data-amount="10">₼10</button>
+                <button class="chip" data-amount="20">₼20</button>
+                <button class="chip" data-amount="50">₼50</button>
+            </div>
+
+            <label for="account-select">Haradan</label>
+            <select id="account-select" disabled>
+                <option>Yüklənir...</option>
+            </select>
+            <p class="available" id="available"></p>
+
+            <button class="btn" id="send-btn" disabled>Göndər</button>
+            <p class="send-error" id="send-error" hidden></p>
+        </section>
+
+    </main>
+
+    <script>
+        const APP_BALANCE = "APP_BALANCE"; // must match main.py
+
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const stepSearch = document.getElementById("step-search");
+        const stepAmount = document.getElementById("step-amount");
+        const searchInput = document.getElementById("search-input");
+        const hint = document.getElementById("hint");
+        const results = document.getElementById("results");
+        const amountInput = document.getElementById("amount-input");
+        const accountSelect = document.getElementById("account-select");
+        const available = document.getElementById("available");
+        const sendBtn = document.getElementById("send-btn");
+        const sendError = document.getElementById("send-error");
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Usernames are typed by users: never put them into innerHTML raw
+        function esc(text) {
+            return String(text).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+
+        function initial(name) {
+            return Array.from(name)[0].toUpperCase();
+        }
+
+        // ---------- Step 1: search ----------
+
+        let searchTimer = null;
+        let searchSeq = 0;        // only the newest search may draw (answers can arrive out of order)
+        let shownQuery = "";      // the text the results on screen are for
+        let shownUsers = [];
+
+        function setHint(text, isError, html) {
+            hint.className = "hint" + (isError ? " error" : "");
+            if (html) hint.innerHTML = html; else hint.textContent = text;
+            hint.hidden = !text && !html;
+        }
+
+        // Same letter folding as search_key() in main.py, one letter at a time,
+        // so "sebu" can be highlighted inside "Səbuhi"
+        const FOLD = { "ə": "e", "ı": "i", "ş": "s", "ç": "c", "ğ": "g", "ö": "o", "ü": "u" };
+
+        function foldLetter(letter) {
+            return letter.toLowerCase().replace(/̇/g, "").split("").map(function (c) {
+                return FOLD[c] || c;
+            }).join("");
+        }
+
+        function highlight(name, query) {
+            const letters = Array.from(name);
+            const folded = letters.map(foldLetter);
+            const wanted = Array.from(query).map(foldLetter).join("");
+
+            for (let start = 0; start < letters.length; start++) {
+                let text = "";
+                for (let end = start; end < letters.length && text.length < wanted.length; end++) {
+                    text += folded[end];
+                    if (text === wanted) {
+                        return esc(letters.slice(0, start).join("")) +
+                            "<mark>" + esc(letters.slice(start, end + 1).join("")) + "</mark>" +
+                            esc(letters.slice(end + 1).join(""));
+                    }
+                }
+            }
+            return esc(name);
+        }
+
+        function drawResults(query, users) {
+            shownQuery = query;
+            shownUsers = users;
+            results.innerHTML = "";
+
+            users.forEach(function (user) {
+                const row = document.createElement("button");
+                row.type = "button";
+                row.className = "person";
+                row.innerHTML =
+                    '<span class="avatar">' + esc(initial(user.username)) + "</span>" +
+                    '<span class="person-name">' + highlight(user.username, query) + "</span>" +
+                    '<span class="chevron">›</span>';
+                row.addEventListener("click", function () {
+                    pickPerson(user.username);
+                });
+                results.appendChild(row);
+            });
+        }
+
+        async function runSearch(query) {
+            const seq = ++searchSeq;
+
+            let data;
+            try {
+                const response = await fetch(API + "/users/search?q=" + encodeURIComponent(query) +
+                    "&user_id=" + encodeURIComponent(user_id));
+                data = await response.json();
+            } catch (error) {
+                if (seq !== searchSeq) return;
+                drawResults("", []);
+                setHint("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.", true);
+                return;
+            }
+
+            if (seq !== searchSeq) return;   // they kept typing; a newer search will draw
+
+            if (data.status !== "success") {
+                drawResults("", []);
+                setHint("", true, 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>');
+                return;
+            }
+
+            drawResults(query, data.users);
+            setHint(data.users.length ? "" : "\"" + query + "\" adlı istifadəçi tapılmadı.");
+        }
+
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchTimer);
+            const query = searchInput.value.trim();
+
+            if (query.length < 2) {
+                searchSeq++;          // ignore any search still on its way
+                drawResults("", []);
+                setHint(query ? "Ən azı 2 hərf yazın." : "İstifadəçi adını yazın. Pul onun Cultra balansına gedəcək.");
+                return;
+            }
+
+            searchTimer = setTimeout(function () {
+                runSearch(query);
+            }, 250);
+        });
+
+        // Enter picks the top result (only if the list is for what's typed right now)
+        searchInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && shownUsers.length && shownQuery === searchInput.value.trim()) {
+                pickPerson(shownUsers[0].username);
+            }
+        });
+
+        // ---------- Step 2: amount + account ----------
+
+        let recipient = null;     // username we're sending to
+        let accounts = {};        // card number -> { balance, ... }
+        let appBalance = 0;
+        let selected = APP_BALANCE;
+        let accountsReady = false;
+        let sending = false;
+
+        async function loadAccounts() {
+            accountsReady = false;
+            accountSelect.disabled = true;
+            updateForm();
+
+            try {
+                const [cardsRes, balRes] = await Promise.all([
+                    fetch(API + "/bankcards/" + user_id),
+                    fetch(API + "/app-balance/" + user_id)
+                ]);
+                const cards = await cardsRes.json();
+                const bal = await balRes.json();
+                if (cards.status !== "success" || bal.status !== "success") {
+                    showSendError("Sessiyanızın müddəti bitib. Yenidən daxil olun.");
+                    return;
+                }
+                accounts = cards.accounts;
+                appBalance = bal.app_balance;
+            } catch (error) {
+                showSendError("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.");
+                return;
+            }
+
+            // Keep the choice if it still exists. Otherwise: the Cultra balance if it has money
+            // (or there are no cards), else the first card - same rule as the scanner.
+            const numbers = Object.keys(accounts);
+            if (selected !== APP_BALANCE && !accounts[selected]) selected = null;
+            if (!selected || (selected === APP_BALANCE && appBalance <= 0 && numbers.length)) {
+                selected = (appBalance > 0 || numbers.length === 0) ? APP_BALANCE : numbers[0];
+            }
+
+            accountSelect.innerHTML = "";
+            function add(value, text) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = text;
+                accountSelect.appendChild(option);
+            }
+            add(APP_BALANCE, "Cultra balansı · ₼" + money(appBalance));
+            numbers.forEach(function (number) {
+                add(number, "•••• " + number.slice(-4) + " · ₼" + money(accounts[number].balance));
+            });
+            accountSelect.value = selected;
+            accountSelect.disabled = false;
+
+            accountsReady = true;
+            updateForm();
+        }
+
+        function selectedBalance() {
+            if (selected === APP_BALANCE) return appBalance;
+            return accounts[selected] ? accounts[selected].balance : 0;
+        }
+
+        // "12.50", "12,50" (Azerbaijani keyboards type a comma), "12." -> number. Anything else -> null.
+        function readAmount() {
+            const raw = amountInput.value.trim().replace(",", ".");
+            if (!/^(\d+(\.\d{0,2})?|\.\d{1,2})$/.test(raw)) return null;
+            const amount = Number(raw);
+            return amount > 0 ? amount : null;
+        }
+
+        function updateForm() {
+            const typed = amountInput.value.trim() !== "";
+            const amount = readAmount();
+            let problem = "";
+
+            if (typed && amount === null) {
+                problem = "Məbləği düzgün yazın, məsələn 12.50";
+            } else if (accountsReady && amount !== null && amount > selectedBalance()) {
+                problem = "Bu hesabda kifayət qədər pul yoxdur";
+            }
+
+            if (problem) {
+                available.textContent = problem;
+                available.className = "available error";
+            } else {
+                available.textContent = accountsReady ? "Mövcud: ₼" + money(selectedBalance()) : "";
+                available.className = "available";
+            }
+
+            sendBtn.disabled = sending || !accountsReady || amount === null || !!problem;
+            if (!sending) {
+                sendBtn.textContent = amount !== null && !problem ? "₼" + money(amount) + " göndər" : "Göndər";
+            }
+        }
+
+        function showSendError(text) {
+            sendError.textContent = text;
+            sendError.hidden = !text;
+        }
+
+        amountInput.addEventListener("input", function () {
+            showSendError("");
+            updateForm();
+        });
+
+        amountInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !sendBtn.disabled) sendBtn.click();
+        });
+
+        accountSelect.addEventListener("change", function () {
+            selected = accountSelect.value;
+            showSendError("");
+            updateForm();
+        });
+
+        document.querySelectorAll(".chip").forEach(function (chip) {
+            chip.addEventListener("click", function () {
+                amountInput.value = chip.dataset.amount;
+                showSendError("");
+                updateForm();
+            });
+        });
+
+        sendBtn.addEventListener("click", async function () {
+            const amount = readAmount();
+            if (amount === null || !recipient || sending) return;
+
+            sending = true;
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Göndərilir...";
+            showSendError("");
+
+            let data;
+            try {
+                const response = await fetch(API + "/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: user_id,
+                        to_username: recipient,
+                        card_number: selected,
+                        amount: amount
+                    })
+                });
+                data = await response.json();
+            } catch (error) {
+                data = { status: "failed", reason: "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın." };
+            }
+
+            if (data.status === "success") {
+                // Sent: back to the main menu, with a short confirmation there
+                try {
+                    sessionStorage.setItem("cultra_flash", "₼" + money(data.amount) + " göndərildi: " + data.to_username);
+                } catch (error) {
+                    // no banner, still go home
+                }
+                window.location.replace("main_menu.html");   // so "back" doesn't return to this form
+                return;
+            }
+
+            sending = false;
+            showSendError(data.reason || "Göndərmək alınmadı");
+            updateForm();
+
+            // Balances may have changed since the page opened. If the fresh numbers already
+            // explain the problem (not enough money), one red message is enough.
+            await loadAccounts();
+            if (accountsReady && available.classList.contains("error")) showSendError("");
+        });
+
+        // ---------- Switching steps ----------
+        // Picking a person adds a history entry, so the phone's back button returns to the search
+
+        function pickPerson(username) {
+            recipient = username;
+            document.getElementById("to-avatar").textContent = initial(username);
+            document.getElementById("to-name").textContent = username;
+
+            amountInput.value = "";
+            showSendError("");
+            stepSearch.hidden = true;
+            stepAmount.hidden = false;
+            history.pushState({ step: "amount" }, "");
+
+            loadAccounts();
+            setTimeout(function () { amountInput.focus(); }, 50);
+        }
+
+        function showSearchStep() {
+            if (sending) return;
+            recipient = null;
+            stepAmount.hidden = true;
+            stepSearch.hidden = false;
+            searchInput.focus();
+        }
+
+        window.addEventListener("popstate", function () {
+            if (!stepAmount.hidden) showSearchStep();
+        });
+
+        document.getElementById("change").addEventListener("click", function () {
+            history.back();
+        });
+
+        document.getElementById("back").addEventListener("click", function () {
+            if (!stepAmount.hidden) history.back();
+            else window.location.href = "main_menu.html";
+        });
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>

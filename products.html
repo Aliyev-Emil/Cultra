@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test məhsul barkodları - Cultra</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        /* White on purpose: barcodes scan best with plenty of white around them, and it prints well */
+        body {
+            margin: 0;
+            background-color: #f3f4f6;
+            color: #14161a;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px 20px 40px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin: 0 0 8px;
+        }
+
+        .lead {
+            color: #5b6170;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 24px;
+            max-width: 640px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        .product {
+            background-color: #ffffff;
+            border: 1px solid #e1e4ea;
+            border-radius: 14px;
+            padding: 16px 16px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            break-inside: avoid;
+        }
+
+        .product-head {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .product-name {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .product-price {
+            font-size: 15px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .product svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media print {
+            body {
+                background-color: #ffffff;
+            }
+
+            .lead {
+                display: none;
+            }
+
+            .product {
+                border-color: #cfd3da;
+            }
+        }
+    </style>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <main class="page">
+        <h1>Test məhsul barkodları</h1>
+        <p class="lead">
+            Biznes kassasını yoxlamaq üçün nümunə məhsullar. Bu səhifəni başqa ekranda açın (və ya çap edin),
+            sonra biznes hesabında <b>Kassa</b> səhifəsində bir neçə məhsulu skan edib səbətə əlavə edin.
+            Sonda cəmi ödəmək üçün müştərinin ödəniş kodunu skan edin.
+        </p>
+
+        <p class="lead" id="loading">Məhsullar yüklənir…</p>
+        <div class="grid" id="grid"></div>
+    </main>
+
+    <script>
+        const grid = document.getElementById("grid");
+        const loading = document.getElementById("loading");
+
+        // The product list lives on the server (GET /products), the same one the checkout uses
+        async function load() {
+            let data;
+            try {
+                const response = await fetch(API + "/products");
+                data = await response.json();
+            } catch (error) {
+                loading.textContent = "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.";
+                return;
+            }
+            if (data.status !== "success") {
+                loading.textContent = "Məhsulları yükləmək alınmadı.";
+                return;
+            }
+            loading.remove();
+            Object.keys(data.products).forEach(function (code) {
+                addProduct(code, data.products[code]);
+            });
+        }
+
+        function addProduct(code, product) {
+
+            const card = document.createElement("div");
+            card.className = "product";
+
+            const head = document.createElement("div");
+            head.className = "product-head";
+
+            const name = document.createElement("span");
+            name.className = "product-name";
+            name.textContent = product.name;
+
+            const price = document.createElement("span");
+            price.className = "product-price";
+            price.textContent = "₼" + product.price.toFixed(2);
+
+            head.append(name, price);
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            card.append(head, svg);
+            grid.appendChild(card);
+
+            JsBarcode(svg, code, {
+                format: "EAN13",
+                width: 2,
+                height: 70,
+                margin: 12,
+                fontSize: 16,
+                background: "#ffffff",
+                lineColor: "#000000"
+            });
+        }
+
+        load();
+    </script>
+</body>
+
+</html>

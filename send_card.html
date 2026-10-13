@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Karta göndər - Cultra</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: #0d111d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            padding: 28px 24px 32px;
+        }
+
+        .back {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #182033;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 36px 0 24px;
+        }
+
+        label {
+            display: block;
+            color: #8491ad;
+            font-size: 14px;
+            margin: 0 0 8px 4px;
+        }
+
+        /* Card number */
+
+        .card-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 60px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            padding: 0 18px;
+        }
+
+        .card-box:focus-within {
+            border-color: #f79432;
+        }
+
+        .card-box span {
+            font-size: 20px;
+        }
+
+        .card-box input {
+            flex: 1;
+            min-width: 0;
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 19px;
+            font-family: inherit;
+            letter-spacing: 1px;
+            padding: 0;
+        }
+
+        .card-box input::placeholder {
+            color: #3d4760;
+        }
+
+        .card-hint {
+            display: flex;
+            justify-content: space-between;
+            color: #71809f;
+            font-size: 13px;
+            margin: 8px 4px 22px;
+        }
+
+        .card-hint.error {
+            color: #ff7a6b;
+        }
+
+        .card-hint.ok {
+            color: #3fc08d;
+        }
+
+        /* Amount */
+
+        .amount-box {
+            display: flex;
+            align-items: center;
+            height: 72px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            padding: 0 18px;
+            margin-bottom: 12px;
+        }
+
+        .amount-box:focus-within {
+            border-color: #f79432;
+        }
+
+        .amount-box span {
+            color: #8491ad;
+            font-size: 30px;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .amount-box input {
+            flex: 1;
+            min-width: 0;
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        .amount-box input::placeholder {
+            color: #3d4760;
+        }
+
+        .chips {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .chip {
+            flex: 1;
+            height: 40px;
+            background-color: #171e30;
+            border: 1px solid #2c3548;
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chip:hover {
+            border-color: #f79432;
+        }
+
+        select {
+            width: 100%;
+            height: 56px;
+            background-color: #182033;
+            border: 1px solid #30394c;
+            border-radius: 18px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            padding: 0 18px;
+            margin-bottom: 8px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #f79432;
+        }
+
+        .available {
+            color: #71809f;
+            font-size: 13px;
+            margin: 0 4px 22px;
+        }
+
+        .available.error {
+            color: #ff7a6b;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 18px;
+            background-color: #f79432;
+            color: #0d111d;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .send-error {
+            color: #ff7a6b;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 14px 4px 0;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+    </style>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <main class="page">
+
+        <a class="back" href="main_menu.html" aria-label="Geri">←</a>
+
+        <h1>Karta göndər</h1>
+
+        <label for="card-input">Kart nömrəsi</label>
+        <div class="card-box">
+            <span aria-hidden="true">💳</span>
+            <input id="card-input" type="text" inputmode="numeric" placeholder="0000 0000 0000 0000"
+                autocomplete="off" autofocus />
+        </div>
+        <p class="card-hint" id="card-hint"><span id="card-hint-text">Alıcının 16 rəqəmli kart nömrəsi</span><span id="card-count">0/16</span></p>
+
+        <label for="amount-input">Məbləğ</label>
+        <div class="amount-box">
+            <span>₼</span>
+            <input id="amount-input" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off" />
+        </div>
+
+        <div class="chips">
+            <button class="chip" data-amount="5">₼5</button>
+            <button class="chip" data-amount="10">₼10</button>
+            <button class="chip" data-amount="20">₼20</button>
+            <button class="chip" data-amount="50">₼50</button>
+        </div>
+
+        <label for="account-select">Haradan</label>
+        <select id="account-select" disabled>
+            <option>Yüklənir...</option>
+        </select>
+        <p class="available" id="available"></p>
+
+        <button class="btn" id="send-btn" disabled>Göndər</button>
+        <p class="send-error" id="send-error" hidden></p>
+
+    </main>
+
+    <script>
+        const APP_BALANCE = "APP_BALANCE"; // must match main.py
+
+        const user_id = sessionStorage.getItem("user_id");
+
+        // Not logged in: go back to the welcome page
+        if (!user_id) window.location.href = "先.html";
+
+        const cardInput = document.getElementById("card-input");
+        const cardHint = document.getElementById("card-hint");
+        const cardHintText = document.getElementById("card-hint-text");
+        const cardCount = document.getElementById("card-count");
+        const amountInput = document.getElementById("amount-input");
+        const accountSelect = document.getElementById("account-select");
+        const available = document.getElementById("available");
+        const sendBtn = document.getElementById("send-btn");
+        const sendError = document.getElementById("send-error");
+
+        let accounts = {};        // the sender's own cards: number -> { balance, ... }
+        let appBalance = 0;
+        let selected = APP_BALANCE;
+        let accountsReady = false;
+        let sending = false;
+
+        function money(n) {
+            return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // ---------- Card number: digits only, max 16, shown as "1234 5678 9012 3456" ----------
+
+        function cardDigits() {
+            return cardInput.value.replace(/\D/g, "");
+        }
+
+        cardInput.addEventListener("input", function () {
+            const digits = cardDigits().slice(0, 16);
+            cardInput.value = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+            showSendError("");
+            updateForm();
+
+            // All 16 typed: on to the amount
+            if (digits.length === 16 && !accounts[digits]) amountInput.focus();
+        });
+
+        // ---------- Amount ----------
+
+        // "12.50", "12,50" (Azerbaijani keyboards type a comma), "12." -> number. Anything else -> null.
+        function readAmount() {
+            const raw = amountInput.value.trim().replace(",", ".");
+            if (!/^(\d+(\.\d{0,2})?|\.\d{1,2})$/.test(raw)) return null;
+            const amount = Number(raw);
+            return amount > 0 ? amount : null;
+        }
+
+        function selectedBalance() {
+            if (selected === APP_BALANCE) return appBalance;
+            return accounts[selected] ? accounts[selected].balance : 0;
+        }
+
+        // ---------- One place that decides what the form shows and whether "Göndər" works ----------
+
+        function updateForm() {
+            const digits = cardDigits();
+            const cardOk = digits.length === 16 && !accounts[digits];
+
+            cardCount.textContent = digits.length + "/16";
+            if (accounts[digits]) {
+                cardHint.className = "card-hint error";
+                cardHintText.textContent = "Bu sizin öz kartınızdır";
+            } else if (digits.length === 16) {
+                cardHint.className = "card-hint ok";
+                cardHintText.textContent = "✓ •••• " + digits.slice(-4);
+            } else {
+                cardHint.className = "card-hint";
+                cardHintText.textContent = "Alıcının 16 rəqəmli kart nömrəsi";
+            }
+
+            const typed = amountInput.value.trim() !== "";
+            const amount = readAmount();
+            let problem = "";
+
+            if (typed && amount === null) {
+                problem = "Məbləği düzgün yazın, məsələn 12.50";
+            } else if (accountsReady && amount !== null && amount > selectedBalance()) {
+                problem = "Bu hesabda kifayət qədər pul yoxdur";
+            }
+
+            if (problem) {
+                available.textContent = problem;
+                available.className = "available error";
+            } else {
+                available.textContent = accountsReady ? "Mövcud: ₼" + money(selectedBalance()) : "";
+                available.className = "available";
+            }
+
+            sendBtn.disabled = sending || !accountsReady || !cardOk || amount === null || !!problem;
+            if (!sending) {
+                sendBtn.textContent = amount !== null && !problem ? "₼" + money(amount) + " göndər" : "Göndər";
+            }
+        }
+
+        function showSendError(text) {
+            sendError.textContent = text;
+            sendError.hidden = !text;
+        }
+
+        // ---------- Where the money comes from ----------
+
+        async function loadAccounts() {
+            accountsReady = false;
+            accountSelect.disabled = true;
+            updateForm();
+
+            try {
+                const [cardsRes, balRes] = await Promise.all([
+                    fetch(API + "/bankcards/" + user_id),
+                    fetch(API + "/app-balance/" + user_id)
+                ]);
+                const cards = await cardsRes.json();
+                const bal = await balRes.json();
+                if (cards.status !== "success" || bal.status !== "success") {
+                    showSendError("Sessiyanızın müddəti bitib. Yenidən daxil olun.");
+                    return;
+                }
+                accounts = cards.accounts;
+                appBalance = bal.app_balance;
+            } catch (error) {
+                showSendError("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.");
+                return;
+            }
+
+            // Keep the choice if it still exists. Otherwise: the Cultra balance if it has money
+            // (or there are no cards), else the first card - same rule as the scanner.
+            const numbers = Object.keys(accounts);
+            if (selected !== APP_BALANCE && !accounts[selected]) selected = null;
+            if (!selected || (selected === APP_BALANCE && appBalance <= 0 && numbers.length)) {
+                selected = (appBalance > 0 || numbers.length === 0) ? APP_BALANCE : numbers[0];
+            }
+
+            accountSelect.innerHTML = "";
+            function add(value, text) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = text;
+                accountSelect.appendChild(option);
+            }
+            add(APP_BALANCE, "Cultra balansı · ₼" + money(appBalance));
+            numbers.forEach(function (number) {
+                add(number, "•••• " + number.slice(-4) + " · ₼" + money(accounts[number].balance));
+            });
+            accountSelect.value = selected;
+            accountSelect.disabled = false;
+
+            accountsReady = true;
+            updateForm();
+        }
+
+        amountInput.addEventListener("input", function () {
+            showSendError("");
+            updateForm();
+        });
+
+        amountInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !sendBtn.disabled) sendBtn.click();
+        });
+
+        accountSelect.addEventListener("change", function () {
+            selected = accountSelect.value;
+            showSendError("");
+            updateForm();
+        });
+
+        document.querySelectorAll(".chip").forEach(function (chip) {
+            chip.addEventListener("click", function () {
+                amountInput.value = chip.dataset.amount;
+                showSendError("");
+                updateForm();
+            });
+        });
+
+        // ---------- Send ----------
+
+        sendBtn.addEventListener("click", async function () {
+            const amount = readAmount();
+            const toCard = cardDigits();
+            if (amount === null || toCard.length !== 16 || sending) return;
+
+            sending = true;
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Göndərilir...";
+            showSendError("");
+
+            let data;
+            try {
+                const response = await fetch(API + "/send-to-card", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: user_id,
+                        to_card: toCard,
+                        card_number: selected,
+                        amount: amount
+                    })
+                });
+                data = await response.json();
+            } catch (error) {
+                data = { status: "failed", reason: "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın." };
+            }
+
+            if (data.status === "success") {
+                // Sent: back to the main menu, with a short confirmation there
+                try {
+                    sessionStorage.setItem("cultra_flash", "₼" + money(data.amount) + " göndərildi: Kart " + data.to_card);
+                } catch (error) {
+                    // no banner, still go home
+                }
+                window.location.replace("main_menu.html");   // so "back" doesn't return to this form
+                return;
+            }
+
+            sending = false;
+            showSendError(data.reason || "Göndərmək alınmadı");
+            updateForm();
+
+            // Balances may have changed since the page opened. If the fresh numbers already
+            // explain the problem (not enough money), one red message is enough.
+            await loadAccounts();
+            if (accountsReady && available.classList.contains("error")) showSendError("");
+        });
+
+        loadAccounts();
+    </script>
+
+    <script src="pending_requests.js"></script>
+</body>
+
+</html>

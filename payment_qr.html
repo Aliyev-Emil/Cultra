@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ödəniş Qr kodum - Cultra</title>
+    <title>Ödəniş QR - Cultra</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
 
     <style>
         * {
@@ -98,6 +99,73 @@
             border-radius: 16px;
         }
 
+        /* Barcode (above the QR) */
+
+        .barcode-box {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .barcode-paper {
+            width: 100%;
+            min-height: 112px;
+            background-color: white;
+            border-radius: 16px;
+            padding: 12px 10px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #barcode {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .barcode-digits {
+            color: #0d111d;
+            font-family: "Courier New", monospace;
+            font-size: 17px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-top: 6px;
+        }
+
+        /* Digits stay hidden until the user taps the barcode */
+        .barcode-paper.has-code {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .barcode-paper:focus-visible {
+            outline: 2px solid #f79432;
+            outline-offset: 3px;
+        }
+
+        .barcode-digits.concealed {
+            color: #71809f;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            letter-spacing: 0;
+        }
+
+        .barcode-wait {
+            color: #71809f;
+            font-size: 14px;
+        }
+
+        .barcode-wait.error {
+            color: #ff7a6b;
+            text-align: center;
+            line-height: 1.5;
+        }
+
         .qr-caption {
             color: #71809f;
             font-size: 14px;
@@ -118,14 +186,15 @@
             text-decoration: none;
         }
     </style>
+    <script src="config.js"></script>
 </head>
 
 <body>
     <main class="page">
 
-        <a class="back" href="main_menu.html" aria-label="Back to home">←</a>
+        <a class="back" href="main_menu.html" aria-label="Ana səhifəyə qayıt">←</a>
 
-        <h1>Ödəniş Qr Kodu</h1>
+        <h1>Ödəniş QR</h1>
         <p class="lead">Bunu skan edən hər kəs kartınızdan və ya Cultra balansınızdan müəyyən məbləğ tələb edə bilər. Ödəniş həyata keçirilməzdən əvvəl sizdən təsdiq istəniləcək.</p>
 
         <div id="setup"></div>
@@ -142,6 +211,101 @@
 
         const setup = document.getElementById("setup");
         let qrInstance = null;
+
+        // ---------- Barcode ----------
+        // The barcode only holds a 16-digit number from the backend; the backend remembers which
+        // account it charges. A new one is made when this page opens (or the account is switched),
+        // and it stays the same while the page is open: no timer, like the QR code.
+
+        let barcodeRequest = 0;     // ignores answers that arrive after the user switched account
+        let currentCode = null;     // the code on screen right now
+        let codeShown = false;      // are its digits visible?
+        let failedAccount = null;   // set when the barcode couldn't be made: tapping tries again
+
+        // Hidden: "Ödəniş kodunu görmək üçün toxunun". Shown: the 16 digits in groups of four.
+        function renderDigits() {
+            const el = document.querySelector("#barcode-paper .barcode-digits");
+            if (!el || !currentCode) return;
+            el.textContent = codeShown ? groupDigits(currentCode) : "Ödəniş kodunu görmək üçün toxunun";
+            el.className = "barcode-digits" + (codeShown ? "" : " concealed");
+            document.getElementById("barcode-paper").setAttribute("aria-label",
+                codeShown ? "Ödəniş kodu " + groupDigits(currentCode) + ". Gizlətmək üçün toxunun." : "Ödəniş kodunu görmək üçün toxunun");
+        }
+
+        function toggleDigits() {
+            if (failedAccount) {            // "couldn't make it" is on screen: try again
+                loadBarcode(failedAccount);
+                return;
+            }
+            if (!currentCode) return;
+            codeShown = !codeShown;
+            renderDigits();
+        }
+
+        function groupDigits(code) {
+            return code.replace(/(\d{4})(?=\d)/g, "$1 ");   // 6212787210006493 -> 6212 7872 1000 6493
+        }
+
+        function showBarcodeMessage(text, isError) {
+            currentCode = null;
+            const paper = document.getElementById("barcode-paper");
+            paper.classList.toggle("has-code", isError);     // the error message can be tapped
+            if (isError) {
+                paper.setAttribute("role", "button");
+                paper.setAttribute("tabindex", "0");
+            } else {
+                paper.removeAttribute("role");
+                paper.removeAttribute("tabindex");
+            }
+            paper.removeAttribute("aria-label");
+            paper.innerHTML =
+                '<span class="barcode-wait' + (isError ? " error" : "") + '">' + text + "</span>";
+        }
+
+        async function loadBarcode(account) {
+            const myRequest = ++barcodeRequest;
+            failedAccount = null;
+            showBarcodeMessage("Barkod hazırlanır...", false);
+
+            let data;
+            try {
+                const response = await fetch(API + "/barcode", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: user_id, account: account })
+                });
+                data = await response.json();
+            } catch (error) {
+                data = null;
+            }
+
+            if (myRequest !== barcodeRequest) return;   // account changed meanwhile
+
+            if (!data || data.status !== "success") {
+                failedAccount = account;
+                showBarcodeMessage("Barkod yaradıla bilmədi. Yenidən cəhd etmək üçün toxunun.", true);
+                return;
+            }
+
+            const paper = document.getElementById("barcode-paper");
+            paper.innerHTML = '<svg id="barcode"></svg><div class="barcode-digits"></div>';
+            JsBarcode("#barcode", data.code, {
+                format: "CODE128",
+                width: 2,
+                height: 72,
+                margin: 8,
+                displayValue: false,        // digits are shown below, grouped in fours
+                background: "#ffffff",
+                lineColor: "#0d111d"
+            });
+            // Every new code starts with its digits hidden
+            currentCode = data.code;
+            codeShown = false;
+            paper.classList.add("has-code");
+            paper.setAttribute("role", "button");
+            paper.setAttribute("tabindex", "0");
+            renderDigits();
+        }
 
         function empty(html) {
             setup.innerHTML = '<p class="empty">' + html + "</p>";
@@ -162,20 +326,21 @@
                 colorLight: "#ffffff"
             });
             document.getElementById("caption").innerText = accountLabel(account);
+            loadBarcode(account);
         }
 
         async function init() {
             let data;
             try {
-                const response = await fetch("http://127.0.0.1:8000/bankcards/" + user_id);
+                const response = await fetch(API + "/bankcards/" + user_id);
                 data = await response.json();
             } catch (error) {
-                empty("Can't reach the server. Check that the backend is running.");
+                empty("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.");
                 return;
             }
 
             if (data.status !== "success") {
-                empty('Your session has expired. <a href="login.html">Log in again</a>');
+                empty('Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>');
                 return;
             }
 
@@ -202,14 +367,28 @@
 
             const label = document.createElement("label");
             label.setAttribute("for", "card-select");
-            label.innerText = "Charge from";
+            label.innerText = "Hansı hesabdan ödənilsin";
 
             const card = document.createElement("div");
             card.className = "qr-card";
-            card.innerHTML = '<div id="qrcode"></div><p class="qr-caption" id="caption"></p>';
+            card.innerHTML =
+                '<div class="barcode-box">' +
+                '<div class="barcode-paper" id="barcode-paper"></div>' +
+                "</div>" +
+                '<div id="qrcode"></div><p class="qr-caption" id="caption"></p>';
 
             setup.innerHTML = "";
             setup.append(label, select, card);
+
+            // Tap (or Enter / Space) on the barcode shows or hides its digits (or retries, if it failed)
+            const paper = document.getElementById("barcode-paper");
+            paper.addEventListener("click", toggleDigits);
+            paper.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleDigits();
+                }
+            });
 
             renderQr(APP_BALANCE);
         }

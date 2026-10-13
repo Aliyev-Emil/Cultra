@@ -45,6 +45,30 @@
         #cultra-request-from.error {
             color: #ff7a6b;
         }
+        /* What's being paid for (only when the merchant charged a cart) */
+        #cultra-request-items {
+            list-style: none;
+            margin: 0 0 18px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background-color: #182033;
+            max-height: 180px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        #cultra-request-items:empty {
+            display: none;
+        }
+        #cultra-request-items li {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 4px 0;
+        }
+        #cultra-request-items li span:last-child {
+            white-space: nowrap;
+            color: #a9b3c9;
+        }
         .cultra-request-btn {
             width: 100%;
             height: 56px;
@@ -77,16 +101,33 @@
     bg.innerHTML =
         '<div id="cultra-request-sheet">' +
         '<p id="cultra-request-amount">₼0.00</p>' +
-        '<p id="cultra-request-sub">wants to receive this from you</p>' +
+        '<p id="cultra-request-sub">sizdən ödəniş tələb edir</p>' +
         '<p id="cultra-request-from"></p>' +
-        '<button class="cultra-request-btn" id="cultra-request-accept">Approve</button>' +
-        '<button class="cultra-request-btn" id="cultra-request-decline">Decline</button>' +
+        '<ul id="cultra-request-items"></ul>' +
+        '<button class="cultra-request-btn" id="cultra-request-accept">Təsdiq et</button>' +
+        '<button class="cultra-request-btn" id="cultra-request-decline">İmtina et</button>' +
         "</div>";
     document.body.appendChild(bg);
 
     const amountEl = document.getElementById("cultra-request-amount");
     const subEl = document.getElementById("cultra-request-sub");
     const fromEl = document.getElementById("cultra-request-from");
+    const itemsEl = document.getElementById("cultra-request-items");
+
+    // Cart items, if the backend sends them with the request ([{ name, price, qty }, ...])
+    function showItems(items) {
+        itemsEl.innerHTML = "";
+        if (!Array.isArray(items)) return;
+        items.forEach(function (item) {
+            const li = document.createElement("li");
+            const name = document.createElement("span");
+            name.textContent = (item.qty > 1 ? item.qty + " × " : "") + item.name;   // textContent: never HTML
+            const price = document.createElement("span");
+            price.textContent = "₼" + (Math.round(item.price * 100) * item.qty / 100).toFixed(2);
+            li.append(name, price);
+            itemsEl.appendChild(li);
+        });
+    }
     const acceptBtn = document.getElementById("cultra-request-accept");
     const declineBtn = document.getElementById("cultra-request-decline");
 
@@ -99,10 +140,12 @@
         const req = queue[0];
         shownId = req.payment_id;
         amountEl.innerText = "₼" + req.amount.toFixed(2);
-        subEl.innerText = (req.receiver_username || "Someone") + " wants to receive this from you";
+        subEl.innerText = (req.receiver_username || "Biznes") + " sizdən ödəniş tələb edir";
         fromEl.className = "";
-        fromEl.innerText = "Will be charged to " +
-            (req.payer_card === "APP_BALANCE" ? "your Cultra balance" : "•••• " + String(req.payer_card).slice(-4));
+        fromEl.innerText = (req.payer_card === "APP_BALANCE"
+            ? "Cultra balansınızdan"
+            : "•••• " + String(req.payer_card).slice(-4) + " kartınızdan") + " ödəniləcək";
+        showItems(req.items);
         bg.style.display = "flex";
     }
 
@@ -116,18 +159,21 @@
     async function respond(path) {
         if (!shownId || busy) return;
         busy = true;
+        const shownReq = queue.find(function (r) { return r.payment_id === shownId; });
+        let paid = null;
         acceptBtn.disabled = true;
         declineBtn.disabled = true;
 
         let failedReason = null;
         try {
-            const response = await fetch("http://127.0.0.1:8000/" + path, {
+            const response = await fetch(API + "/" + path, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ payment_id: shownId, user_id: user_id })
             });
             const data = await response.json();
-            if (data.status === "failed") failedReason = data.reason || "Something went wrong";
+            if (data.status === "failed") failedReason = data.reason || "Xəta baş verdi";
+            else if (path === "confirm-payment" && data.status === "success") paid = data;
         } catch (error) {
             // if it didn't go through, it'll just show up again on the next poll
         }
@@ -136,12 +182,38 @@
         acceptBtn.disabled = false;
         declineBtn.disabled = false;
 
+        // Let the page refresh its balance / history (e.g. to show the cashback just earned)
+        if (!failedReason) window.dispatchEvent(new CustomEvent("cultra:payment-resolved"));
+
         if (failedReason) {
             // Keep the sheet open so they can read why, and still Decline if they want
             fromEl.className = "error";
             fromEl.innerText = failedReason;
             return;
         }
+
+        // Paid: back to the main menu, with a short confirmation there
+        if (paid) {
+            const text = "₼" + Number(paid.amount).toFixed(2) + " ödənildi" +
+                (shownReq && shownReq.receiver_username ? ": " + shownReq.receiver_username : "") +
+                (paid.cashback > 0 ? " · +₼" + Number(paid.cashback).toFixed(2) + " keşbek" : "") +
+                (paid.xp > 0 ? " · +" + paid.xp + " XP" : "") +
+                (paid.level_up ? " · " + paid.level_up.icon + " " + paid.level_up.name + " səviyyəsi!" : "");
+
+            if (window.cultraShowFlash) {          // already on the main menu: just show it
+                closeAndAdvance();
+                window.cultraShowFlash(text);
+                return;
+            }
+            try {
+                sessionStorage.setItem("cultra_flash", text);
+            } catch (error) {
+                // no banner, still go home
+            }
+            window.location.href = "main_menu.html";
+            return;
+        }
+
         closeAndAdvance();
     }
 
@@ -150,14 +222,17 @@
 
     async function poll() {
         try {
-            const response = await fetch("http://127.0.0.1:8000/pending-payments/" + user_id);
+            const response = await fetch(API + "/pending-payments/" + user_id);
             const data = await response.json();
             if (data.status === "success") {
                 queue = data.payments;
 
                 const stillPending = queue.some(function (r) { return r.payment_id === shownId; });
                 if (shownId && !busy && !stillPending) {
-                    closeAndAdvance(); // resolved from somewhere else
+                    // Resolved somewhere else, e.g. the merchant cancelled it. Let the page refresh
+                    // (the payment QR page shows a fresh barcode, since the old one was used).
+                    closeAndAdvance();
+                    window.dispatchEvent(new CustomEvent("cultra:payment-resolved"));
                 } else {
                     showNext();
                 }

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="az">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <title>Merchant - Cultra</title>
+    <title>Biznes - Cultra</title>
 
     <style>
         :root {
@@ -558,38 +558,62 @@
         .btn:not(.btn-secondary):hover:not(:disabled) {
             background-color: var(--cultra-gold-bright, #f0c35a);
         }
+
+        /* Short confirmation, e.g. after moving money to the bank */
+        .flash {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background-color: rgba(63, 192, 141, 0.12);
+            border: 1px solid rgba(63, 192, 141, 0.35);
+            color: #3fc08d;
+            font-size: 15px;
+            font-weight: bold;
+            transition: opacity 0.4s;
+        }
+
+        .flash[hidden] {
+            display: none;
+        }
+
+        .flash.fade {
+            opacity: 0;
+        }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <!-- Header -->
     <div class="header">
         <div>
-            <p class="greeting" id="biz-name">Merchant</p>
-            <p class="biz-cat" id="biz-sales">Today ... sales made</p>
+            <p class="greeting" id="biz-name">Biznes</p>
+            <p class="biz-cat" id="biz-sales">Bu gün ... satış</p>
         </div>
 
-        <button class="notification switch" onclick="window.location.href='main_menu.html'" aria-label="Switch to personal account" title="Switch to personal account">
+        <button class="notification switch" onclick="window.location.href='main_menu.html'" aria-label="Şəxsi hesaba keç" title="Şəxsi hesaba keç">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h13m-3-3 3 3-3 3M19 15H6m3-3-3 3 3 3"/></svg>
         </button>
     </div>
 
+    <div class="flash" id="flash" role="status" hidden></div>
+
     <!-- Merchant balance (separate from the Cultra balance: this one can be withdrawn to a bank) -->
     <div class="balance-box">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-            <p class="balance-title">Merchant balance</p>
-            <button class="manage" id="withdraw-open">Withdraw</button>
+            <p class="balance-title">Biznes balansı</p>
+            <button class="manage" id="withdraw-open">Hesaba köçür</button>
         </div>
 
         <div class="balance" id="balance">
             ₼0<span class="balance-decimal">.00</span>
         </div>
 
-        <p class="balance-subtitle" id="balance-subtitle">Loading...</p>
+        <p class="balance-subtitle" id="balance-subtitle">Yüklənir...</p>
     </div>
 
     <!-- Bank total (separate from the merchant balance above) -->
     <div class="bank-total-box">
-        <span class="bank-total-label">Total balance in bank cards</span>
+        <span class="bank-total-label">Bank hesablarındakı ümumi məbləğ</span>
         <span class="bank-total-amount" id="bank-total">₼0.00</span>
     </div>
 
@@ -597,57 +621,57 @@
     <div class="main-buttons">
         <button class="main-button" onclick="window.location.href='merchant_scan.html'">
             <span class="button-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg></span>
-            Scan
+            Kassa
         </button>
 
         <button class="main-button" onclick="window.location.href='merchant_receive.html'">
             <span class="button-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M6.5 11.5 12 17l5.5-5.5M5 20h14"/></svg></span>
-            Receive QR
+            Qəbul QR
         </button>
     </div>
 
     <!-- Merchant bank accounts -->
     <div class="section-header">
-        <div class="section-title">Merchant bank accounts</div>
-        <button class="manage" onclick="window.location.href='merchant_bank_accounts.html'">Check all</button>
+        <div class="section-title">Biznes bank hesabları</div>
+        <button class="manage" onclick="window.location.href='merchant_bank_accounts.html'">Hamısına bax</button>
     </div>
 
     <div id="banks-list">
-        <p class="empty">Loading...</p>
+        <p class="empty">Yüklənir...</p>
     </div>
 
     <button class="connect" onclick="window.location.href='add_bank.html?type=merchant'">
         <div class="plus">+</div>
-        Add merchant bank account
+        Biznes bank hesabı əlavə et
     </button>
 
     <!-- Transactions -->
     <div class="section-header" id="activity">
-        <div class="section-title">Transactions</div>
-        <button class="manage" onclick="window.location.href='merchant_transactions.html'">Check all</button>
+        <div class="section-title">Tarixçə</div>
+        <button class="manage" onclick="window.location.href='merchant_transactions.html'">Hamısına bax</button>
     </div>
 
     <div id="activity-list">
-        <p class="empty">Loading...</p>
+        <p class="empty">Yüklənir...</p>
     </div>
 
     <!-- Withdraw sheet -->
     <div class="sheet-bg" id="wd-bg">
         <div class="sheet">
-            <h2>Withdraw</h2>
+            <h2>Bank hesabına köçür</h2>
             <p class="sheet-sub" id="wd-available"></p>
 
-            <label for="wd-account">To bank account</label>
+            <label for="wd-account">Bank hesabı</label>
             <select id="wd-account"></select>
 
-            <label for="wd-amount">Amount (AZN)</label>
+            <label for="wd-amount">Məbləğ (AZN)</label>
             <input id="wd-amount" type="number" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal" />
-            <button class="link" id="wd-all" type="button">Withdraw everything</button>
+            <button class="link" id="wd-all" type="button">Hamısını köçür</button>
 
             <p class="message" id="wd-message" role="status"></p>
 
-            <button class="btn" id="wd-confirm">Withdraw</button>
-            <button class="btn btn-secondary" id="wd-cancel">Cancel</button>
+            <button class="btn" id="wd-confirm">Köçür</button>
+            <button class="btn btn-secondary" id="wd-cancel">Ləğv et</button>
         </div>
     </div>
 
@@ -657,7 +681,6 @@
         // Not logged in: go back to the welcome page
         if (!user_id) window.location.href = "先.html";
 
-        const API = "http://127.0.0.1:8000";
         const MERCHANT_BALANCE = "MERCHANT_BALANCE"; // must match main.py
 
         function money(n) {
@@ -678,16 +701,16 @@
                 const response = await fetch(API + "/merchant/" + user_id);
                 data = await response.json();
             } catch (error) {
-                return { error: "Can't reach the server. Check that the backend is running." };
+                return { error: "Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın." };
             }
 
             if (data.status !== "success") {
-                return { error: 'Your session has expired. <a href="login.html">Log in again</a>' };
+                return { error: 'Sessiyanızın müddəti bitib. <a href="login.html">Yenidən daxil olun</a>' };
             }
 
             if (!data.registered) {
                 window.location.href = "merchant_register.html";
-                return { error: "Redirecting..." };
+                return { error: "Yönləndirilir..." };
             }
 
             return { merchant: data.merchant };
@@ -702,16 +725,19 @@
                 "₼" + parts[0] + '<span class="balance-decimal">.' + parts[1] + "</span>";
         }
 
+        // "13 okt, 17:47". Written out by hand: not every browser has Azerbaijani month names built in
+        const AZ_MONTHS = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek"];
+
         function formatWhen(iso) {
             const d = new Date(iso);
-            return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " +
-                d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            return d.getDate() + " " + AZ_MONTHS[d.getMonth()] + ", " +
+                String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
         }
 
         function showError(html) {
             document.getElementById("banks-list").innerHTML = '<p class="empty">' + html + "</p>";
             document.getElementById("activity-list").innerHTML = "";
-            document.getElementById("balance-subtitle").textContent = "Unavailable";
+            document.getElementById("balance-subtitle").textContent = "Əlçatan deyil";
         }
 
         const CARD_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/></svg>';
@@ -723,14 +749,14 @@
             list.innerHTML = "";
 
             if (numbers.length === 0) {
-                list.appendChild(el("p", "empty", "No merchant bank account yet. Add one to withdraw your balance."));
+                list.appendChild(el("p", "empty", "Hələ biznes bank hesabı yoxdur. Balansı köçürmək üçün hesab əlavə edin."));
                 return;
             }
 
             numbers.slice(0, PREVIEW).forEach(function (number) {
                 const row = el("div", "bank");
                 const info = el("div", "bank-info");
-                info.append(el("div", "bank-name", "•••• " + number.slice(-4)), el("div", "bank-status", "Withdrawals go here"));
+                info.append(el("div", "bank-name", "•••• " + number.slice(-4)), el("div", "bank-status", "Köçürmələr bura gəlir"));
                 const logo = el("div", "bank-logo");
                 logo.innerHTML = CARD_ICON;   // fixed markup, not user text
                 row.append(logo, info, el("div", "bank-balance", "₼" + money(accounts[number].balance)));
@@ -743,7 +769,7 @@
             list.innerHTML = "";
 
             if (transactions.length === 0) {
-                list.appendChild(el("p", "empty", "No transactions yet."));
+                list.appendChild(el("p", "empty", "Hələ heç bir əməliyyat yoxdur."));
                 return;
             }
 
@@ -753,7 +779,7 @@
                 const row = el("div", "purchase");
                 const info = el("div", "purchase-info");
                 info.append(
-                    el("div", "purchase-name", withdrawal ? "Withdrawn to •••• " + tx.card_number.slice(-4) : "Payment from " + tx.other_username),
+                    el("div", "purchase-name", withdrawal ? "Hesaba köçürüldü: •••• " + tx.card_number.slice(-4) : "Qəbul edildi: " + tx.other_username),
                     el("div", "purchase-date", formatWhen(tx.at))
                 );
 
@@ -776,12 +802,12 @@
                 ]);
                 info = results[0]; cards = results[1]; history = results[2];
             } catch (error) {
-                showError("Can't reach the server. Check that the backend is running.");
+                showError("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.");
                 return;
             }
 
             if (info.status !== "success") {
-                showError('Your session has expired. <a href="login.html" style="color:var(--cultra-gold-bright, #f0c35a);font-weight:bold;">Log in again</a>');
+                showError('Sessiyanızın müddəti bitib. <a href="login.html" style="color:var(--cultra-gold-bright, #f0c35a);font-weight:bold;">Yenidən daxil olun</a>');
                 return;
             }
 
@@ -797,15 +823,31 @@
             // Business name instead of the username
             document.getElementById("biz-name").textContent = merchant.business_name;
             const n = merchant.sales_today;
-            document.getElementById("biz-sales").textContent = "Today " + n + (n === 1 ? " sale" : " sales") + " made";
+            document.getElementById("biz-sales").textContent = "Bu gün " + n + " satış";
 
             renderBalance(merchant.merchant_balance);
             document.getElementById("bank-total").textContent = "₼" + money(merchant.bank_total);
             document.getElementById("balance-subtitle").textContent =
-                "Unlike your Cultra balance, this can be withdrawn to your merchant bank account";
+                "Cultra balansından fərqli olaraq, bu pulu biznes bank hesabınıza köçürə bilərsiniz";
 
             renderBanks();
             renderHistory(history.status === "success" ? history.transactions : []);
+        }
+
+        // ---------- Short confirmation at the top ----------
+        let flashTimer = null;
+
+        function showFlash(text) {
+            const flash = document.getElementById("flash");
+            flash.textContent = "✓ " + text;
+            flash.className = "flash";
+            flash.hidden = false;
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            clearTimeout(flashTimer);
+            flashTimer = setTimeout(function () {
+                flash.classList.add("fade");
+                setTimeout(function () { flash.hidden = true; }, 400);
+            }, 5000);
         }
 
         // ---------- Withdraw ----------
@@ -833,9 +875,9 @@
                 wdAccount.appendChild(option);
             });
 
-            document.getElementById("wd-available").textContent = "Available: ₼" + money(merchant.merchant_balance);
+            document.getElementById("wd-available").textContent = "Mövcud: ₼" + money(merchant.merchant_balance);
             wdAmount.value = "";
-            wdSay(numbers.length === 0 ? "Add a merchant bank account first." : "", false);
+            wdSay(numbers.length === 0 ? "Əvvəlcə biznes bank hesabı əlavə edin." : "", false);
             wdConfirm.disabled = numbers.length === 0;
             wdBg.classList.add("on");
         });
@@ -871,11 +913,13 @@
                 if (data.status === "success") {
                     wdBg.classList.remove("on");
                     await load();
+                    showFlash("₼" + money(amount) + " •••• " + wdAccount.value.slice(-4) + " hesabına köçürüldü");
+                    wdConfirm.disabled = false;
                     return;
                 }
-                wdSay(data.reason || "Something went wrong.", false);
+                wdSay(data.reason || "Xəta baş verdi.", false);
             } catch (error) {
-                wdSay("Can't reach the server. Check that the backend is running.", false);
+                wdSay("Serverə qoşulmaq olmur. Backend-in işlədiyini yoxlayın.", false);
             }
             wdConfirm.disabled = false;
         });
