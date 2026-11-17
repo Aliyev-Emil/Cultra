@@ -1,5 +1,7 @@
 # Cultra
 
+**Reminder: This project is still demo and u can view the app with the apk file above -> **
+
 **All your banks in one app.** Cultra is a QR-based payment app: link your bank cards, keep an in-app balance, and pay or get paid by scanning a code. Businesses can switch to a separate **merchant** mode with their own balance, bank accounts and sales history.
 
 > Status: working prototype, also as an Android app. The whole app is in Azerbaijani. The backend saves everything in a database (a file on your laptop, PostgreSQL online), and the bank cards are simulated. See [Roadmap](#roadmap) for what's next.
